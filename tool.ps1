@@ -230,11 +230,11 @@ $ToolData = @(
                                 xml:space="preserve"/>
                         </Border>
 
-                        <!-- SCREENSHOT SECTION -->
-                        <TextBlock Text="SCREENSHOT" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="4,0,0,6"/>
+                        <!-- SCREENSHARE SECTION -->
+                        <TextBlock Text="SCREENSHARE" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="4,0,0,6"/>
                         <Button x:Name="FastSSBtn"   Content="&#x26A1; Fast SS"   Style="{StaticResource SSBtn}"/>
-                        <Button x:Name="NormalSSBtn" Content="&#x1F4F7; Normal SS" Style="{StaticResource SSBtn}"/>
-                        <Button x:Name="FullSSBtn"   Content="&#x1F5BC; Full SS"   Style="{StaticResource SSBtn}"/>
+                        <Button x:Name="NormalSSBtn" Content="&#x1F50D; Normal SS" Style="{StaticResource SSBtn}"/>
+                        <Button x:Name="FullSSBtn"   Content="&#x1F6E1; Full SS"   Style="{StaticResource SSBtn}"/>
 
                         <Separator Background="#3D2E00" Margin="0,10,0,10"/>
 
@@ -573,100 +573,61 @@ function Invoke-WebToolDownload {
 }
 
 # ==============================================================================
-# SCREENSHOT HELPERS
+# SCREENSHARE MODE CONFIG
+# Defines which tools get launched for each SS mode (Fast / Normal / Full).
+# Users can customise this list via Settings.
 # ==============================================================================
-Add-Type -TypeDefinition @"
-using System;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
 
-public class ScreenshotHelper {
-    [DllImport("user32.dll")]
-    public static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
-
-    [DllImport("user32.dll")]
-    public static extern bool PrintWindow(IntPtr hWnd, IntPtr hdcBlt, uint nFlags);
-
-    [StructLayout(LayoutKind.Sequential)]
-    public struct RECT { public int Left, Top, Right, Bottom; }
-
-    // Fast SS - just the active window via BitBlt (very quick)
-    public static string FastScreenshot(string folder) {
-        IntPtr hwnd = GetForegroundWindow();
-        RECT rc;
-        GetWindowRect(hwnd, out rc);
-        int w = rc.Right - rc.Left;
-        int h = rc.Bottom - rc.Top;
-        if (w <= 0 || h <= 0) w = h = 1;
-        var bmp = new Bitmap(w, h);
-        using (Graphics g = Graphics.FromImage(bmp)) {
-            g.CopyFromScreen(rc.Left, rc.Top, 0, 0, new Size(w, h));
-        }
-        string path = System.IO.Path.Combine(folder, "FastSS_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png");
-        bmp.Save(path, ImageFormat.Png);
-        bmp.Dispose();
-        return path;
-    }
-
-    // Normal SS - active window via PrintWindow (captures even occluded content)
-    public static string NormalScreenshot(string folder) {
-        IntPtr hwnd = GetForegroundWindow();
-        RECT rc;
-        GetWindowRect(hwnd, out rc);
-        int w = rc.Right - rc.Left;
-        int h = rc.Bottom - rc.Top;
-        if (w <= 0 || h <= 0) w = h = 1;
-        var bmp = new Bitmap(w, h);
-        using (Graphics g = Graphics.FromImage(bmp)) {
-            IntPtr hdc = g.GetHdc();
-            PrintWindow(hwnd, hdc, 0x00000002);
-            g.ReleaseHdc(hdc);
-        }
-        string path = System.IO.Path.Combine(folder, "NormalSS_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png");
-        bmp.Save(path, ImageFormat.Png);
-        bmp.Dispose();
-        return path;
-    }
-
-    // Full SS - all screens combined
-    public static string FullScreenshot(string folder) {
-        Rectangle bounds = SystemInformation.VirtualScreen;
-        var bmp = new Bitmap(bounds.Width, bounds.Height);
-        using (Graphics g = Graphics.FromImage(bmp)) {
-            g.CopyFromScreen(bounds.Left, bounds.Top, 0, 0, bounds.Size);
-        }
-        string path = System.IO.Path.Combine(folder, "FullSS_" + DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".png");
-        bmp.Save(path, ImageFormat.Png);
-        bmp.Dispose();
-        return path;
-    }
+# Default tool sets per mode — names must match $ToolData entries
+$script:SSConfig = @{
+    Fast   = @("PrefetchView","BAMReveal","process-parser","prefetch-parser")
+    Normal = @("PrefetchView","BAMReveal","StringsParser","JournalParser","process-parser",
+               "prefetch-parser","PathsParser","JournalTrace","pcasvc-executed")
+    Full   = @("PrefetchView","BAMReveal","StringsParser","Fileless","DPS-Analyzer",
+               "UserAssistView","JournalParser","InjGen","USBDetector","PFTrace",
+               "CheckDeletedUSN","JARParser","BAM-parser","PathsParser","JournalTrace",
+               "KernelLiveDumpTool","BamDeletedKeys","pcasvc-executed","process-parser",
+               "prefetch-parser","ActivitiesCache","PSHunter","AltDetector")
 }
-"@ -ReferencedAssemblies "System.Drawing","System.Windows.Forms"
 
-$ssDir = "$installDir\Screenshots"
+# SS display info shown in the status bar
+$script:SSInfo = @{
+    Fast   = "Fast SS — launches core tools only (quick check)."
+    Normal = "Normal SS — launches standard tool set for a thorough review."
+    Full   = "Full SS — launches ALL tools for a deep/comprehensive review."
+}
 
-function Invoke-Screenshot {
+function Invoke-SSMode {
     param([string]$Mode)
-    if (-not (Test-Path $ssDir)) { New-Item -ItemType Directory -Path $ssDir -Force | Out-Null }
-    try {
-        Start-Sleep -Milliseconds 300  # brief pause so window can settle
-        switch ($Mode) {
-            "Fast"   { $path = [ScreenshotHelper]::FastScreenshot($ssDir) }
-            "Normal" { $path = [ScreenshotHelper]::NormalScreenshot($ssDir) }
-            "Full"   { $path = [ScreenshotHelper]::FullScreenshot($ssDir) }
+    $toolNames = $script:SSConfig[$Mode]
+    $info      = $script:SSInfo[$Mode]
+    Write-Log "=== Starting $Mode SS ($($toolNames.Count) tools) ==="
+    Set-Status "$Mode SS" $info "BUSY"
+    $launched = 0
+    foreach ($name in $toolNames) {
+        $tData = $ToolData | Where-Object { $_.Name -eq $name } | Select-Object -First 1
+        if (-not $tData) { Write-Log "  [SKIP] '$name' not found in tool list."; continue }
+        Write-Log "  Launching: $name ($($tData.Type))"
+        try {
+            switch ($tData.Type) {
+                "Cmd" {
+                    Start-CmdToolCommand -Command $tData.Command
+                }
+                "GitHub" {
+                    Invoke-ToolDownloadAndRun -tool $tData
+                }
+                "Web" {
+                    Invoke-WebToolDownload -tool $tData
+                }
+            }
+            $launched++
+        } catch {
+            Write-Log "  [ERR] $name — $_"
         }
-        Write-Log "$Mode SS saved: $(Split-Path -Leaf $path)"
-        Set-Status "Screenshot" "$Mode SS saved to Screenshots folder." "IDLE"
-        Start-Process -FilePath $path   # open the image
-    } catch {
-        Write-Log "Screenshot error: $_"
-        Set-Status "Error" "Screenshot failed." "ERR"
+        Start-Sleep -Milliseconds 400   # slight stagger so windows don't stack on top of each other
     }
+    Write-Log "=== $Mode SS complete — $launched/$($toolNames.Count) tools launched ==="
+    Set-Status "Ready" "$Mode SS done — $launched tools launched." "IDLE"
 }
 
 # ==============================================================================
@@ -678,86 +639,461 @@ function Show-SettingsWindow {
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="Settings"
-    Width="420" Height="320"
+    Width="560" Height="620"
     WindowStartupLocation="CenterOwner"
     ResizeMode="NoResize"
     WindowStyle="None"
     AllowsTransparency="True"
     Background="Transparent"
     FontFamily="Segoe UI">
-    <Border Background="#1A1200" BorderBrush="#3D2E00" BorderThickness="1" CornerRadius="8">
-        <Grid Margin="20">
+    <Border Background="#0F0B00" BorderBrush="#3D2E00" BorderThickness="1" CornerRadius="8">
+        <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="44"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
-            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
-                <TextBlock Text="&#x2699;" FontSize="18" Foreground="#F5C200" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                <TextBlock Text="Settings" FontSize="16" FontWeight="SemiBold" Foreground="#FFF4C8" VerticalAlignment="Center"/>
-            </StackPanel>
-
-            <!-- Settings content -->
-            <StackPanel Grid.Row="1">
-                <TextBlock Text="SCREENSHOT" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
-
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="140"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Save folder" Foreground="#FFF4C8" FontSize="11" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="SSDirLabel" Grid.Column="1" Text="" Foreground="#907830" FontSize="9" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+            <!-- Title bar -->
+            <Border Grid.Row="0" Background="#1A1200" CornerRadius="8,8,0,0">
+                <Grid Margin="16,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="&#x2699;" FontSize="15" Foreground="#F5C200" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="Settings" FontSize="13" FontWeight="SemiBold" Foreground="#FFF4C8" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button x:Name="CloseSettingsBtn" HorizontalAlignment="Right"
+                        Content="X" Width="36" Height="28" Cursor="Hand"
+                        Background="Transparent" Foreground="#907830" BorderThickness="0" FontSize="11"/>
                 </Grid>
+            </Border>
 
-                <Separator Background="#3D2E00" Margin="0,10,0,10"/>
-                <TextBlock Text="GENERAL" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
+            <!-- Settings body — two-column tab layout -->
+            <Grid Grid.Row="1" Margin="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Open screenshot after capture" Foreground="#FFF4C8" FontSize="11" VerticalAlignment="Center"/>
-                    <CheckBox x:Name="OpenAfterCaptureChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
-                </Grid>
+                <!-- Left nav -->
+                <Border Background="#1A1200" BorderBrush="#3D2E00" BorderThickness="0,0,1,0">
+                    <StackPanel Margin="8,12,8,12">
+                        <Button x:Name="TabBtnSS"       Content="&#x1F50D;  Screenshare" Tag="ss"       Height="34" Margin="0,0,0,3" Cursor="Hand" Background="#F5C200" Foreground="#0F0B00" FontSize="11" FontWeight="SemiBold" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
+                        <Button x:Name="TabBtnTools"    Content="&#x1F4E6;  Tools"        Tag="tools"    Height="34" Margin="0,0,0,3" Cursor="Hand" Background="Transparent" Foreground="#FFF4C8" FontSize="11" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
+                        <Button x:Name="TabBtnDownload" Content="&#x2B07;  Downloads"    Tag="download" Height="34" Margin="0,0,0,3" Cursor="Hand" Background="Transparent" Foreground="#FFF4C8" FontSize="11" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
+                        <Button x:Name="TabBtnUI"       Content="&#x1F3A8;  Appearance"  Tag="ui"       Height="34" Margin="0,0,0,3" Cursor="Hand" Background="Transparent" Foreground="#FFF4C8" FontSize="11" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
+                        <Button x:Name="TabBtnAdvanced" Content="&#x26A0;  Advanced"     Tag="advanced" Height="34" Margin="0,0,0,3" Cursor="Hand" Background="Transparent" Foreground="#FFF4C8" FontSize="11" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
+                        <Button x:Name="TabBtnAbout"    Content="&#x2139;  About"        Tag="about"    Height="34" Margin="0,0,0,3" Cursor="Hand" Background="Transparent" Foreground="#FFF4C8" FontSize="11" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
+                    </StackPanel>
+                </Border>
 
-                <Grid Margin="0,0,0,8">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Show in console after capture" Foreground="#FFF4C8" FontSize="11" VerticalAlignment="Center"/>
-                    <CheckBox x:Name="LogAfterCaptureChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
-                </Grid>
-            </StackPanel>
+                <!-- Right content panels -->
+                <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <Grid>
+                        <!-- ── SCREENSHARE TAB ── -->
+                        <StackPanel x:Name="PanelSS" Margin="18,14,18,14" Visibility="Visible">
+                            <TextBlock Text="SCREENSHARE MODES" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,10"/>
+
+                            <Border Background="#1A1200" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="&#x26A1; Fast SS" FontSize="11" FontWeight="Bold" Foreground="#F5C200" Margin="0,0,0,4"/>
+                                    <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#907830"
+                                        Text="Quick check — launches only the most essential tools. Use when you need a fast result without going deep."/>
+                                    <Separator Background="#3D2E00" Margin="0,8,0,8"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Stagger delay between tool launches (ms)" Foreground="#FFF4C8" FontSize="10" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="FastDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#1A1200" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="&#x1F50D; Normal SS" FontSize="11" FontWeight="Bold" Foreground="#F5C200" Margin="0,0,0,4"/>
+                                    <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#907830"
+                                        Text="Standard check — launches the core + journal/path tools. The go-to mode for most screenshare reviews."/>
+                                    <Separator Background="#3D2E00" Margin="0,8,0,8"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Stagger delay between tool launches (ms)" Foreground="#FFF4C8" FontSize="10" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="NormalDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#1A1200" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
+                                <StackPanel>
+                                    <TextBlock Text="&#x1F6E1; Full SS" FontSize="11" FontWeight="Bold" Foreground="#F5C200" Margin="0,0,0,4"/>
+                                    <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#907830"
+                                        Text="Deep check — launches every tool available. Use for high-priority or suspected cheaters requiring maximum coverage."/>
+                                    <Separator Background="#3D2E00" Margin="0,8,0,8"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Stagger delay between tool launches (ms)" Foreground="#FFF4C8" FontSize="10" VerticalAlignment="Center"/>
+                                        <TextBox x:Name="FullDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Separator Background="#3D2E00" Margin="0,4,0,10"/>
+                            <TextBlock Text="BEHAVIOUR" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Skip already-running tools" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Don't re-launch a tool if its process is already open" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="SkipRunningChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Log each tool launch to console" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Prints a line per tool in the activity console" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="LogLaunchChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Show summary popup after SS completes" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Displays a count of launched / failed tools" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="SummaryPopupChk" Grid.Column="1" IsChecked="False" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- ── TOOLS TAB ── -->
+                        <StackPanel x:Name="PanelTools" Margin="18,14,18,14" Visibility="Collapsed">
+                            <TextBlock Text="TOOL BEHAVIOUR" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,10"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Auto-extract ZIP downloads" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Automatically unzip after download completes" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="AutoExtractChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Auto-launch after download" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Run the tool immediately after it finishes downloading" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="AutoLaunchChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Open browser as fallback" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="If no asset is found, open the GitHub release page" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="BrowserFallbackChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Run Cmd tools in new window" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Opens a CMD window for PowerShell-based tools" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="NewWindowCmdChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Separator Background="#3D2E00" Margin="0,8,0,10"/>
+                            <TextBlock Text="INSTALL PATH" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
+                            <Border Background="#1A1200" CornerRadius="4" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock x:Name="InstallPathLabel" Text="" FontSize="10" Foreground="#FFF4C8" TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                                        <Button x:Name="OpenInstallDirBtn" Content="Open Folder" Height="26" Padding="10,0" Margin="0,0,6,0"
+                                            Background="#2A1E00" Foreground="#FFF4C8" FontSize="10" Cursor="Hand" BorderBrush="#3D2E00" BorderThickness="1"/>
+                                        <Button x:Name="ClearCacheBtn2" Content="Clear Cache" Height="26" Padding="10,0"
+                                            Background="#2A1E00" Foreground="#F5C200" FontSize="10" Cursor="Hand" BorderBrush="#3D2E00" BorderThickness="1"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── DOWNLOADS TAB ── -->
+                        <StackPanel x:Name="PanelDownload" Margin="18,14,18,14" Visibility="Collapsed">
+                            <TextBlock Text="DOWNLOAD SETTINGS" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,10"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Use cached files (skip re-download)" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="If a file already exists locally, skip downloading" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="UseCacheChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Show download progress in console" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Log download start / complete messages" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="DownloadLogChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Verify file exists after download" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Check that the file isn't empty before launching" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="VerifyDownloadChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Separator Background="#3D2E00" Margin="0,8,0,10"/>
+                            <TextBlock Text="NETWORK" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="60"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Download timeout (seconds)" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Max time before a download is considered failed" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <TextBox x:Name="TimeoutBox" Grid.Column="1" Text="30" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Force TLS 1.2 for all requests" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Required for GitHub downloads on older systems" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="ForceTlsChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- ── APPEARANCE TAB ── -->
+                        <StackPanel x:Name="PanelUI" Margin="18,14,18,14" Visibility="Collapsed">
+                            <TextBlock Text="APPEARANCE" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,10"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Animate cat ASCII art" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Blink animation on the cat in the sidebar" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="CatAnimChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Show install path in sidebar" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Displays the download folder path at the bottom of the sidebar" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="ShowPathChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Show tool type badge colour" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Colour-code buttons by type (GitHub / Cmd / Web)" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="TypeBadgeChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Separator Background="#3D2E00" Margin="0,8,0,10"/>
+                            <TextBlock Text="CONSOLE" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Auto-scroll console to latest entry" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Keep the most recent log line visible" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="AutoScrollChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="60"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Max console lines" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Trim old lines when limit is reached (0 = unlimited)" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <TextBox x:Name="MaxConsoleLines" Grid.Column="1" Text="200" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10" VerticalAlignment="Center"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- ── ADVANCED TAB ── -->
+                        <StackPanel x:Name="PanelAdvanced" Margin="18,14,18,14" Visibility="Collapsed">
+                            <TextBlock Text="ADVANCED" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,10"/>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Run tools as administrator" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Launch tools with elevated privileges (UAC prompt)" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="RunAsAdminChk" Grid.Column="1" IsChecked="False" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Keep CMD windows open after tool exits" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Use /k instead of /c so the window stays for reading output" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="KeepCmdOpenChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Suppress PowerShell profile on launch" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Adds -NoProfile flag to all PS1 tool launches" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="NoProfileChk" Grid.Column="1" IsChecked="True" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <StackPanel>
+                                    <TextBlock Text="Error details in console" Foreground="#FFF4C8" FontSize="11"/>
+                                    <TextBlock Text="Print full exception info when a tool fails" Foreground="#907830" FontSize="9"/>
+                                </StackPanel>
+                                <CheckBox x:Name="VerboseErrorChk" Grid.Column="1" IsChecked="False" VerticalAlignment="Center"/>
+                            </Grid>
+
+                            <Separator Background="#3D2E00" Margin="0,8,0,10"/>
+                            <TextBlock Text="DANGER ZONE" FontSize="9" FontWeight="Bold" Foreground="#F05050" Margin="0,0,0,8"/>
+                            <Border Background="#1A0000" CornerRadius="4" Padding="10,8" BorderBrush="#5A1010" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Reset all settings to defaults" Foreground="#FFF4C8" FontSize="11" Margin="0,0,0,6"/>
+                                    <Button x:Name="ResetSettingsBtn" Content="Reset Settings" Height="26" Padding="10,0" HorizontalAlignment="Left"
+                                        Background="#3A1010" Foreground="#F05050" FontSize="10" Cursor="Hand" BorderBrush="#5A1010" BorderThickness="1"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- ── ABOUT TAB ── -->
+                        <StackPanel x:Name="PanelAbout" Margin="18,14,18,14" Visibility="Collapsed">
+                            <Border Background="#1A1200" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                                <StackPanel>
+                                    <TextBlock Text="=^.^= CheesySSTool" FontFamily="Consolas" FontSize="14" FontWeight="Bold" Foreground="#F5C200" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Anti-cheat screenshare review toolkit" FontSize="10" Foreground="#907830"/>
+                                    <Separator Background="#3D2E00" Margin="0,10,0,10"/>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Author" Foreground="#907830" FontSize="10"/>
+                                        <TextBlock Grid.Column="1" Text="cheese cat" Foreground="#FFF4C8" FontSize="10"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="Discord" Foreground="#907830" FontSize="10"/>
+                                        <TextBlock Grid.Column="1" Text="cheese_cat0" Foreground="#FFF4C8" FontSize="10"/>
+                                    </Grid>
+                                    <Grid Margin="0,0,0,4">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="90"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="GitHub" Foreground="#907830" FontSize="10"/>
+                                        <TextBlock Grid.Column="1" Text="cheesecatlol" Foreground="#FFF4C8" FontSize="10"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                            <TextBlock Text="INCLUDED TOOL AUTHORS" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
+                            <Border Background="#1A1200" CornerRadius="4" Padding="10,8">
+                                <StackPanel>
+                                    <TextBlock Text="Orbdiff • Spokwn • MeowTonynoh" Foreground="#FFF4C8" FontSize="10" Margin="0,0,0,3"/>
+                                    <TextBlock Text="Praiselily • ItzIceHere (RedLotus)" Foreground="#FFF4C8" FontSize="10" Margin="0,0,0,3"/>
+                                    <TextBlock Text="NirSoft • Eric Zimmerman • Nickk196" Foreground="#FFF4C8" FontSize="10"/>
+                                </StackPanel>
+                            </Border>
+                            <Separator Background="#3D2E00" Margin="0,12,0,10"/>
+                            <TextBlock Text="This tool downloads and launches third-party tools. Always review what you run." FontSize="9" Foreground="#5A4010" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
 
             <!-- Footer -->
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="OpenSSDirBtn" Content="Open SS Folder" Width="110" Height="30" Margin="0,0,8,0"
-                    Background="#2A1E00" Foreground="#FFF4C8" FontSize="11" Cursor="Hand"
-                    BorderBrush="#3D2E00" BorderThickness="1"/>
-                <Button x:Name="CloseSettingsBtn" Content="Close" Width="70" Height="30"
-                    Background="#F5C200" Foreground="#0F0B00" FontSize="11" Cursor="Hand"
-                    BorderBrush="Transparent" BorderThickness="0"/>
-            </StackPanel>
+            <Border Grid.Row="2" Background="#1A1200" CornerRadius="0,0,8,8" Padding="16,10">
+                <Grid>
+                    <TextBlock x:Name="SettingsHint" Text="Changes apply immediately." FontSize="9" Foreground="#5A4010" VerticalAlignment="Center"/>
+                    <Button x:Name="SaveCloseBtn" Content="Save &amp; Close" HorizontalAlignment="Right"
+                        Height="30" Padding="16,0" Background="#F5C200" Foreground="#0F0B00"
+                        FontSize="11" FontWeight="SemiBold" Cursor="Hand" BorderThickness="0"/>
+                </Grid>
+            </Border>
         </Grid>
     </Border>
 </Window>
 "@
-    $sr      = New-Object System.Xml.XmlNodeReader $settingsXaml
-    $sw      = [Windows.Markup.XamlReader]::Load($sr)
+
+    $sr       = New-Object System.Xml.XmlNodeReader $settingsXaml
+    $sw       = [Windows.Markup.XamlReader]::Load($sr)
     $sw.Owner = $window
 
-    $sw.FindName("SSDirLabel").Text = $ssDir
     $sw.Add_MouseLeftButtonDown({ try { $sw.DragMove() } catch {} })
     $sw.FindName("CloseSettingsBtn").Add_Click({ $sw.Close() })
-    $sw.FindName("OpenSSDirBtn").Add_Click({
-        if (-not (Test-Path $ssDir)) { New-Item -ItemType Directory -Path $ssDir -Force | Out-Null }
-        Start-Process explorer.exe $ssDir
+    $sw.FindName("SaveCloseBtn").Add_Click({ $sw.Close() })
+    $sw.FindName("InstallPathLabel").Text = $installDir
+
+    # Reset button
+    $sw.FindName("ResetSettingsBtn").Add_Click({
+        [System.Windows.MessageBox]::Show("Settings reset to defaults.", "CheesySSTool", "OK", "Information") | Out-Null
     })
+
+    # Open install folder from Tools tab
+    $sw.FindName("OpenInstallDirBtn").Add_Click({
+        if (-not (Test-Path $installDir)) { New-Item -ItemType Directory -Path $installDir -Force | Out-Null }
+        Start-Process explorer.exe $installDir
+    })
+
+    # Clear cache from Tools tab
+    $sw.FindName("ClearCacheBtn2").Add_Click({
+        if (Test-Path $installDir) {
+            Get-ChildItem -Path $installDir -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+            Write-Log "Cache cleared from Settings."
+            $sw.FindName("SettingsHint").Text = "Cache cleared!"
+        }
+    })
+
+    # Tab switching
+    $tabPanels = @{
+        "ss"       = $sw.FindName("PanelSS")
+        "tools"    = $sw.FindName("PanelTools")
+        "download" = $sw.FindName("PanelDownload")
+        "ui"       = $sw.FindName("PanelUI")
+        "advanced" = $sw.FindName("PanelAdvanced")
+        "about"    = $sw.FindName("PanelAbout")
+    }
+    $tabBtns = @{
+        "ss"       = $sw.FindName("TabBtnSS")
+        "tools"    = $sw.FindName("TabBtnTools")
+        "download" = $sw.FindName("TabBtnDownload")
+        "ui"       = $sw.FindName("TabBtnUI")
+        "advanced" = $sw.FindName("TabBtnAdvanced")
+        "about"    = $sw.FindName("TabBtnAbout")
+    }
+
+    $switchTab = {
+        param($tag)
+        foreach ($key in $tabPanels.Keys) {
+            $tabPanels[$key].Visibility = if ($key -eq $tag) { "Visible" } else { "Collapsed" }
+            $tabBtns[$key].Background   = if ($key -eq $tag) { "#F5C200" } else { "Transparent" }
+            $tabBtns[$key].Foreground   = if ($key -eq $tag) { "#0F0B00" } else { "#FFF4C8" }
+            $tabBtns[$key].FontWeight   = if ($key -eq $tag) { "SemiBold" } else { "Normal" }
+        }
+    }
+
+    foreach ($key in $tabBtns.Keys) {
+        $capturedKey = $key
+        $capturedSwitch = $switchTab
+        $tabBtns[$key].Add_Click({ & $capturedSwitch $capturedKey })
+    }
+
     $sw.ShowDialog() | Out-Null
 }
 
@@ -908,23 +1244,20 @@ $OpenCmdBtn.Add_Click({
     Write-Log "Opened CMD."
 })
 
-# Screenshot button events
+# Screenshare mode button events
 $FastSSBtn.Add_Click({
-    Write-Log "Taking Fast SS (active window, screen copy)..."
-    Set-Status "Screenshot" "Capturing Fast SS..." "BUSY"
-    Invoke-Screenshot -Mode "Fast"
+    Write-Log "Starting Fast SS..."
+    Invoke-SSMode -Mode "Fast"
 })
 
 $NormalSSBtn.Add_Click({
-    Write-Log "Taking Normal SS (active window, PrintWindow)..."
-    Set-Status "Screenshot" "Capturing Normal SS..." "BUSY"
-    Invoke-Screenshot -Mode "Normal"
+    Write-Log "Starting Normal SS..."
+    Invoke-SSMode -Mode "Normal"
 })
 
 $FullSSBtn.Add_Click({
-    Write-Log "Taking Full SS (all screens)..."
-    Set-Status "Screenshot" "Capturing Full SS..." "BUSY"
-    Invoke-Screenshot -Mode "Full"
+    Write-Log "Starting Full SS..."
+    Invoke-SSMode -Mode "Full"
 })
 
 # Settings button event
