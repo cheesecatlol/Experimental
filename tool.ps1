@@ -2086,7 +2086,7 @@ function global:Build-FullOverviewPage {
     $fxPos = 12; $fyPos = 14
     foreach ($f in $filterItems) {
         $fLbl = [System.Windows.Forms.Label]::new()
-        $fLbl.Text      = "$f:"
+        $fLbl.Text      = "${f}:"
         $fLbl.Font      = $global:Fonts.Caption
         $fLbl.ForeColor = $global:Colors.TextMuted
         $fLbl.BackColor = [System.Drawing.Color]::Transparent
