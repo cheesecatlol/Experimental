@@ -118,8 +118,7 @@ $global:Fonts = @{
 # Loads colors and typography, and configures application-wide rendering hints.
 # =============================================================================
 
-. "$PSScriptRoot\Colors.ps1"
-. "$PSScriptRoot\Typography.ps1"
+# Colors and Typography are defined inline above
 
 # Apply WinForms rendering quality
 [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
