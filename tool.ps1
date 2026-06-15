@@ -68,7 +68,7 @@ $ToolData = @(
     Width="1200" Height="760"
     MinWidth="1200" MinHeight="760"
     WindowStartupLocation="CenterScreen"
-    ResizeMode="NoResize"
+    ResizeMode="CanResize"
     WindowStyle="None"
     AllowsTransparency="True"
     Background="Transparent"
@@ -200,6 +200,7 @@ $ToolData = @(
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button x:Name="MinBtn"   Style="{StaticResource TitleBtn}" Content="_"/>
+                        <Button x:Name="MaxBtn"   Style="{StaticResource TitleBtn}" Content="&#x25A1;"/>
                         <Button x:Name="CloseBtn" Style="{StaticResource TitleBtn}" Content="X"/>
                     </StackPanel>
                 </Grid>
@@ -262,10 +263,10 @@ $ToolData = @(
                 <Grid Grid.Column="1" Margin="16,14,16,14">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="10"/>
+                        <RowDefinition Height="6"/>
                         <RowDefinition Height="*"/>
-                        <RowDefinition Height="10"/>
-                        <RowDefinition Height="240"/>
+                        <RowDefinition Height="6"/>
+                        <RowDefinition Height="220"/>
                     </Grid.RowDefinitions>
 
                     <!-- Status card -->
@@ -356,6 +357,7 @@ $reader  = New-Object System.Xml.XmlNodeReader $xaml
 $window  = [Windows.Markup.XamlReader]::Load($reader)
 
 $MinBtn        = $window.FindName("MinBtn")
+$MaxBtn        = $window.FindName("MaxBtn")
 $CloseBtn      = $window.FindName("CloseBtn")
 $StatusTitle   = $window.FindName("StatusTitle")
 $StatusSub     = $window.FindName("StatusSub")
@@ -709,7 +711,7 @@ function Show-SettingsWindow {
     Title="Settings"
     Width="560" Height="620"
     WindowStartupLocation="CenterOwner"
-    ResizeMode="NoResize"
+    ResizeMode="CanResize"
     WindowStyle="None"
     AllowsTransparency="True"
     Background="Transparent"
@@ -1185,6 +1187,7 @@ foreach ($cat in $Categories) {
 
     foreach ($tool in $catTools) {
         $t   = $tool
+        $tDesc = $t.Desc
         $btn = New-Object System.Windows.Controls.Button
         $btn.Content  = $t.Name
         $btn.Width      = 155
@@ -1195,21 +1198,25 @@ foreach ($cat in $Categories) {
         $btn.Foreground = "#FFF4C8"
         $btn.Background = "#1E1600"
 
-        # Tooltip with description
-        $tt = New-Object System.Windows.Controls.ToolTip
-        $tt.Content     = $t.Desc
-        $tt.Background  = [System.Windows.Media.Brushes]::Black
-        $tt.Foreground  = [System.Windows.Media.Brushes]::White
-        $btn.ToolTip    = $tt
-
         $btn.Template = [Windows.Markup.XamlReader]::Parse("
 <ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Button'>
-    <Border Background='{TemplateBinding Background}' CornerRadius='6' BorderBrush='#33F5C200' BorderThickness='1'>
+    <Border x:Name='brd' Background='#1E1600' CornerRadius='6' BorderBrush='#3D2E00' BorderThickness='1'>
+        <Border.ToolTip>
+            <ToolTip Background='#1A1200' BorderBrush='#F5C200' BorderThickness='1' Padding='8,4'>
+                <TextBlock Text='$tDesc' Foreground='#FFF4C8' FontSize='11'/>
+            </ToolTip>
+        </Border.ToolTip>
         <ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/>
     </Border>
     <ControlTemplate.Triggers>
         <Trigger Property='IsMouseOver' Value='True'>
-            <Setter Property='Background' Value='#F5C200'/>
+            <Setter TargetName='brd' Property='Background' Value='#F5C200'/>
+            <Setter TargetName='brd' Property='BorderBrush' Value='#F5C200'/>
+            <Setter Property='Foreground' Value='#0F0B00'/>
+        </Trigger>
+        <Trigger Property='IsPressed' Value='True'>
+            <Setter TargetName='brd' Property='Background' Value='#C49A00'/>
+            <Setter TargetName='brd' Property='BorderBrush' Value='#C49A00'/>
             <Setter Property='Foreground' Value='#0F0B00'/>
         </Trigger>
     </ControlTemplate.Triggers>
@@ -1290,6 +1297,15 @@ $catTimer.Start()
 $window.Add_MouseLeftButtonDown({ try { $window.DragMove() } catch {} })
 $CloseBtn.Add_Click({ $catTimer.Stop(); $window.Close() })
 $MinBtn.Add_Click({ $window.WindowState = "Minimized" })
+$MaxBtn.Add_Click({
+    if ($window.WindowState -eq "Maximized") {
+        $window.WindowState = "Normal"
+        $MaxBtn.Content = [char]0x25A1   # restore icon
+    } else {
+        $window.WindowState = "Maximized"
+        $MaxBtn.Content = [char]0x25A3   # fullscreen icon
+    }
+})
 
 $OpenFolderBtn.Add_Click({
     if (-not (Test-Path $installDir)) { New-Item -ItemType Directory -Path $installDir -Force | Out-Null }
