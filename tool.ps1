@@ -1,10 +1,4 @@
-# =============================================================================
-# CheesySSTool.ps1 — Single-file build
-# Modern dark-themed screenshare review tool UI framework
-#
-# Usage:
-#   powershell -ExecutionPolicy Bypass -File "CheesySSTool.ps1"
-# =============================================================================
+
 
 #Requires -Version 5.1
 Set-StrictMode -Off
