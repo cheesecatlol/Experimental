@@ -1,4 +1,4 @@
-
+﻿
 
 #Requires -Version 5.1
 Set-StrictMode -Off
@@ -399,10 +399,14 @@ function global:New-EmptyStatePanel {
     $panel.Controls.Add($sub)
 
     $panel.Add_Resize({
-        $lbl.Left = ($panel.Width  - $lbl.Width)  / 2
-        $lbl.Top  = ($panel.Height - $lbl.Height - $sub.Height - 8) / 2
-        $sub.Left = ($panel.Width  - $sub.Width)  / 2
-        $sub.Top  = $lbl.Bottom + 8
+        $c = $this.Controls
+        if ($c.Count -ge 2) {
+            $l = $c[0]; $s = $c[1]
+            $l.Left = ($this.Width  - $l.Width)  / 2
+            $l.Top  = ($this.Height - $l.Height - $s.Height - 8) / 2
+            $s.Left = ($this.Width  - $s.Width)  / 2
+            $s.Top  = $l.Bottom + 8
+        }
     })
 
     return $panel
@@ -466,7 +470,7 @@ function global:New-SearchBar {
     # Anchor width when container resizes
     if ($Width -eq 0) {
         $container.Add_Resize({
-            $tb.Width = $container.Width - 38
+            if ($this.SearchBox) { $this.SearchBox.Width = $this.Width - 38 }
         })
     } else {
         $tb.Width = $Width - 38
@@ -950,10 +954,16 @@ function global:New-CustomTitleBar {
         -OnClick { $ParentForm.WindowState = [System.Windows.Forms.FormWindowState]::Minimized }
 
     # Position buttons on the right
+    # Store button refs on bar so they're accessible via $this in Resize event
+    $bar | Add-Member -MemberType NoteProperty -Name "CloseBtn" -Value $closeBtn
+    $bar | Add-Member -MemberType NoteProperty -Name "MaxBtn" -Value $maxBtn
+    $bar | Add-Member -MemberType NoteProperty -Name "MinBtn" -Value $minBtn
+
     $bar.Add_Resize({
-        $closeBtn.Location = [System.Drawing.Point]::new($bar.Width - 46, 4)
-        $maxBtn.Location   = [System.Drawing.Point]::new($bar.Width - 92, 4)
-        $minBtn.Location   = [System.Drawing.Point]::new($bar.Width - 138, 4)
+        $btns = $this.CloseBtn, $this.MaxBtn, $this.MinBtn
+        if ($btns[0]) { $btns[0].Location = [System.Drawing.Point]::new($this.Width - 46, 4) }
+        if ($btns[1]) { $btns[1].Location = [System.Drawing.Point]::new($this.Width - 92, 4) }
+        if ($btns[2]) { $btns[2].Location = [System.Drawing.Point]::new($this.Width - 138, 4) }
     })
 
     $closeBtn.Location = [System.Drawing.Point]::new(700, 4)
@@ -978,10 +988,13 @@ function global:New-CustomTitleBar {
     $mouseMove = {
         param($s, $e)
         if ($script:isDragging) {
-            $ParentForm.Location = [System.Drawing.Point]::new(
-                $ParentForm.Left + $e.X - $script:dragOffset.X,
-                $ParentForm.Top  + $e.Y - $script:dragOffset.Y
-            )
+            $f = $s.FindForm()
+            if ($f) {
+                $f.Location = [System.Drawing.Point]::new(
+                    $f.Left + $e.X - $script:dragOffset.X,
+                    $f.Top  + $e.Y - $script:dragOffset.Y
+                )
+            }
         }
     }
     $mouseUp = { $script:isDragging = $false }
@@ -1577,14 +1590,14 @@ function global:New-ModeCard {
     })
 
     $card.Add_MouseEnter({
-        $card.BackColor = $global:Colors.BgElevated
+        $this.BackColor = $global:Colors.BgElevated
         $script:isHovered = $true
-        $card.Invalidate()
+        $this.Invalidate()
     })
     $card.Add_MouseLeave({
-        $card.BackColor = $global:Colors.BgSurface
+        $this.BackColor = $global:Colors.BgSurface
         $script:isHovered = $false
-        $card.Invalidate()
+        $this.Invalidate()
     })
 
     # Icon
@@ -1640,8 +1653,8 @@ function global:New-ModeCard {
 
     # Forward mouse events on children to card for hover
     foreach ($child in $card.Controls) {
-        $child.Add_MouseEnter({ $card.BackColor = $global:Colors.BgElevated; $card.Invalidate() })
-        $child.Add_MouseLeave({ $card.BackColor = $global:Colors.BgSurface;  $card.Invalidate() })
+        $child.Add_MouseEnter({ $p = $this.Parent; if ($p) { $p.BackColor = $global:Colors.BgElevated; $p.Invalidate() } })
+        $child.Add_MouseLeave({ $p = $this.Parent; if ($p) { $p.BackColor = $global:Colors.BgSurface;  $p.Invalidate() } })
     }
 
     return $card
@@ -1872,8 +1885,11 @@ function global:Show-FullSSWindow {
     $clockLbl.AutoSize  = $true
     $clockLbl.TextAlign = [System.Drawing.ContentAlignment]::MiddleRight
     $statusBar.Controls.Add($clockLbl)
+    $statusBar | Add-Member -MemberType NoteProperty -Name "ClockLabel" -Value $clockLbl
     $statusBar.Add_Resize({
-        $clockLbl.Location = [System.Drawing.Point]::new($statusBar.Width - $clockLbl.Width - 16, 6)
+        if ($this.ClockLabel) {
+            $this.ClockLabel.Location = [System.Drawing.Point]::new($this.Width - $this.ClockLabel.Width - 16, 6)
+        }
     })
 
     $clockTimer = [System.Windows.Forms.Timer]::new()
