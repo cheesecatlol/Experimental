@@ -10,51 +10,51 @@ $installDir = "$env:USERPROFILE\Downloads\CheesySSTool"
 # TOOL DATA
 # ==============================================================================
 $ToolData = @(
-    @{ Name="PrefetchView"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/PrefetchView/releases/tag/v1.6.7" },
-    @{ Name="BAMReveal"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/BAMReveal/releases/tag/v1.3.1" },
-    @{ Name="StringsParser"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/StringsParser/releases/tag/v1.0" },
-    @{ Name="Fileless"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/Fileless/releases/tag/v1.3" },
-    @{ Name="DPS-Analyzer"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/DPS-Analyzer/releases/tag/v1.1" },
-    @{ Name="UserAssistView"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/UserAssistView/releases/tag/v1.0" },
-    @{ Name="JournalParser"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/JournalParser/releases/tag/v1.2" },
-    @{ Name="InjGen"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/InjGen/releases/tag/fork" },
-    @{ Name="USBDetector"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/USBDetector/releases/tag/v1.1" },
-    @{ Name="PFTrace"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/PFTrace/releases/tag/v1.0.1" },
-    @{ Name="CheckDeletedUSN"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/CheckDeletedUSN/releases/tag/v0.2.1" },
-    @{ Name="JARParser"; Category="Orbdiff"; Type="GitHub"; URL="https://github.com/Orbdiff/JARParser/releases/tag/v1.2" },
-    @{ Name="BAM-parser"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/BAM-parser/releases/tag/v1.2.9" },
-    @{ Name="PathsParser"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/PathsParser/releases/tag/v1.2" },
-    @{ Name="JournalTrace"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/JournalTrace/releases/tag/1.2" },
-    @{ Name="KernelLiveDumpTool"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/KernelLiveDumpTool/releases/tag/v1.1" },
-    @{ Name="BamDeletedKeys"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/BamDeletedKeys/releases/tag/v1.0" },
-    @{ Name="Tool"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/Tool/releases/tag/v1.1.3" },
-    @{ Name="pcasvc-executed"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/pcasvc-executed/releases/tag/v0.8.7" },
-    @{ Name="process-parser"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/process-parser/releases/tag/v0.5.5" },
-    @{ Name="prefetch-parser"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/prefetch-parser/releases/tag/v1.5.5" },
-    @{ Name="ActivitiesCache"; Category="Spokwn"; Type="GitHub"; URL="https://github.com/spokwn/ActivitiesCache-execution/releases/tag/v0.6.5" },
-    @{ Name="MeowDoomsdayFucker"; Category="Tonynoh"; Type="GitHub"; URL="https://github.com/MeowTonynoh/MeowDoomsdayFucker/releases/tag/V.1.2" },
-    @{ Name="MeowModAnalyzer"; Category="Tonynoh"; Type="Cmd"; Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/MeowTonynoh/MeowModAnalyzer/main/MeowModAnalyzer.ps1')" },
-    @{ Name="MeowResolver"; Category="Tonynoh"; Type="GitHub"; URL="https://github.com/MeowTonynoh/MeowResolver/releases/tag/MeowResolver" },
-    @{ Name="MeowNovowareFucker"; Category="Tonynoh"; Type="GitHub"; URL="https://github.com/MeowTonynoh/MeowNovowareFucker/releases/tag/V1" },
-    @{ Name="MeowImportsChecker"; Category="Tonynoh"; Type="GitHub"; URL="https://github.com/MeowTonynoh/MeowImportsChecker/releases/tag/MeowImportsChecker" },
-    @{ Name="PSHunter"; Category="Praiselily"; Type="GitHub"; URL="https://github.com/praiselily/PSHunter/releases/tag/Built" },
-    @{ Name="AltDetector"; Category="Praiselily"; Type="GitHub"; URL="https://github.com/praiselily/AltDetector/releases/tag/Detector" },
-    @{ Name="WeHateFakers"; Category="Praiselily"; Type="Cmd"; Command="iwr https://raw.githubusercontent.com/praiselily/WeHateFakers/refs/heads/main/HotspotLogs.ps1 | iex" },
-    @{ Name="CommonDirectories"; Category="Praiselily"; Type="Cmd"; Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/praiselily/lilith-ps/refs/heads/main/CommonDirectories.ps1')" },
-    @{ Name="HarddiskConverter"; Category="Praiselily"; Type="Cmd"; Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/praiselily/lilith-ps/refs/heads/main/HarddiskConverter.ps1')" },
-    @{ Name="Services"; Category="Praiselily"; Type="Cmd"; Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/praiselily/lilith-ps/refs/heads/main/Services.ps1')" },
-    @{ Name="SignedScheduledTasks"; Category="Praiselily"; Type="Cmd"; Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/praiselily/lilith-ps/refs/heads/main/Signed-Scheduled-Tasks.ps1')" },
-    @{ Name="RL ModAnalyzer"; Category="RedLotus"; Type="GitHub"; URL="https://github.com/ItzIceHere/RedLotus-Mod-Analyzer/releases/tag/RL" },
-    @{ Name="RL TaskSentinel"; Category="RedLotus"; Type="GitHub"; URL="https://github.com/ItzIceHere/RedLotus-Task-Sentinel/releases/tag/RL" },
-    @{ Name="RL AltChecker"; Category="RedLotus"; Type="GitHub"; URL="https://github.com/ItzIceHere/RedLotusAltChecker/releases/tag/RL" },
-    @{ Name="WinPrefetchView"; Category="Others"; Type="Web"; URL="https://www.nirsoft.net/utils/win_prefetch_view.html" },
-    @{ Name="ComputerActivityView"; Category="Others"; Type="Web"; URL="https://www.nirsoft.net/utils/computer_activity_view.html" },
-    @{ Name="AmcacheParser"; Category="Others"; Type="Web"; URL="https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" },
-    @{ Name="JumpListExplorer"; Category="Others"; Type="Web"; URL="https://download.ericzimmermanstools.com/net9/JumpListExplorer.zip" },
-    @{ Name="SystemInformer"; Category="Others"; Type="Web"; URL="https://www.systeminformer.com/canary" },
-    @{ Name="DIE-engine"; Category="Others"; Type="Web"; URL="https://github.com/horsicq/DIE-engine/releases" },
-    @{ Name="DQRKIS-FUCKER"; Category="Others"; Type="Cmd"; Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/cheesecatlol/DQRKIS-FUCKER/refs/heads/main/DqrkisFucker.ps1')" },
-    @{ Name="MacroDetector"; Category="Others"; Type="Cmd"; Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/Nickk196/MacroDetector/refs/heads/main/MacroDetector.ps1')" }
+    @{ Name="PrefetchView";       Category="Orbdiff";    Type="GitHub"; Desc="Views prefetch execution files";          URL="https://github.com/Orbdiff/PrefetchView/releases/tag/v1.6.7" },
+    @{ Name="BAMReveal";          Category="Orbdiff";    Type="GitHub"; Desc="Reveals BAM execution history";           URL="https://github.com/Orbdiff/BAMReveal/releases/tag/v1.3.1" },
+    @{ Name="StringsParser";      Category="Orbdiff";    Type="GitHub"; Desc="Extracts strings from binaries";          URL="https://github.com/Orbdiff/StringsParser/releases/tag/v1.0" },
+    @{ Name="Fileless";           Category="Orbdiff";    Type="GitHub"; Desc="Detects fileless malware traces";         URL="https://github.com/Orbdiff/Fileless/releases/tag/v1.3" },
+    @{ Name="DPS-Analyzer";       Category="Orbdiff";    Type="GitHub"; Desc="Analyzes DPS service logs";               URL="https://github.com/Orbdiff/DPS-Analyzer/releases/tag/v1.1" },
+    @{ Name="UserAssistView";     Category="Orbdiff";    Type="GitHub"; Desc="Shows UserAssist registry entries";       URL="https://github.com/Orbdiff/UserAssistView/releases/tag/v1.0" },
+    @{ Name="JournalParser";      Category="Orbdiff";    Type="GitHub"; Desc="Parses NTFS journal for file activity";   URL="https://github.com/Orbdiff/JournalParser/releases/tag/v1.2" },
+    @{ Name="InjGen";             Category="Orbdiff";    Type="GitHub"; Desc="Checks for DLL injection traces";         URL="https://github.com/Orbdiff/InjGen/releases/tag/fork" },
+    @{ Name="USBDetector";        Category="Orbdiff";    Type="GitHub"; Desc="Finds connected USB device history";      URL="https://github.com/Orbdiff/USBDetector/releases/tag/v1.1" },
+    @{ Name="PFTrace";            Category="Orbdiff";    Type="GitHub"; Desc="Traces prefetch file timestamps";         URL="https://github.com/Orbdiff/PFTrace/releases/tag/v1.0.1" },
+    @{ Name="CheckDeletedUSN";    Category="Orbdiff";    Type="GitHub"; Desc="Finds deleted files via USN journal";     URL="https://github.com/Orbdiff/CheckDeletedUSN/releases/tag/v0.2.1" },
+    @{ Name="JARParser";          Category="Orbdiff";    Type="GitHub"; Desc="Parses JAR files for suspicious content"; URL="https://github.com/Orbdiff/JARParser/releases/tag/v1.2" },
+    @{ Name="BAM-parser";         Category="Spokwn";     Type="GitHub"; Desc="Parses BAM execution records";            URL="https://github.com/spokwn/BAM-parser/releases/tag/v1.2.9" },
+    @{ Name="PathsParser";        Category="Spokwn";     Type="GitHub"; Desc="Lists recently accessed file paths";      URL="https://github.com/spokwn/PathsParser/releases/tag/v1.2" },
+    @{ Name="JournalTrace";       Category="Spokwn";     Type="GitHub"; Desc="Traces NTFS journal file events";         URL="https://github.com/spokwn/JournalTrace/releases/tag/1.2" },
+    @{ Name="KernelLiveDumpTool"; Category="Spokwn";     Type="GitHub"; Desc="Captures live kernel memory dump";        URL="https://github.com/spokwn/KernelLiveDumpTool/releases/tag/v1.1" },
+    @{ Name="BamDeletedKeys";     Category="Spokwn";     Type="GitHub"; Desc="Finds deleted BAM registry keys";         URL="https://github.com/spokwn/BamDeletedKeys/releases/tag/v1.0" },
+    @{ Name="Tool";               Category="Spokwn";     Type="GitHub"; Desc="General-purpose SS analysis tool";        URL="https://github.com/spokwn/Tool/releases/tag/v1.1.3" },
+    @{ Name="pcasvc-executed";    Category="Spokwn";     Type="GitHub"; Desc="Shows PCA service execution history";     URL="https://github.com/spokwn/pcasvc-executed/releases/tag/v0.8.7" },
+    @{ Name="process-parser";     Category="Spokwn";     Type="GitHub"; Desc="Parses recent process execution data";    URL="https://github.com/spokwn/process-parser/releases/tag/v0.5.5" },
+    @{ Name="prefetch-parser";    Category="Spokwn";     Type="GitHub"; Desc="Parses Windows prefetch files";           URL="https://github.com/spokwn/prefetch-parser/releases/tag/v1.5.5" },
+    @{ Name="ActivitiesCache";    Category="Spokwn";     Type="GitHub"; Desc="Reads Windows timeline activities cache"; URL="https://github.com/spokwn/ActivitiesCache-execution/releases/tag/v0.6.5" },
+    @{ Name="MeowDoomsdayFucker"; Category="Tonynoh";    Type="GitHub"; Desc="Detects Doomsday cheat signatures";       URL="https://github.com/MeowTonynoh/MeowDoomsdayFucker/releases/tag/V.1.2" },
+    @{ Name="MeowModAnalyzer";    Category="Tonynoh";    Type="Cmd";    Desc="Analyzes mod files for cheats";           Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/MeowTonynoh/MeowModAnalyzer/main/MeowModAnalyzer.ps1')" },
+    @{ Name="MeowResolver";       Category="Tonynoh";    Type="GitHub"; Desc="Resolves obfuscated cheat paths";         URL="https://github.com/MeowTonynoh/MeowResolver/releases/tag/MeowResolver" },
+    @{ Name="MeowNovowareFucker"; Category="Tonynoh";    Type="GitHub"; Desc="Detects Novoware cheat traces";           URL="https://github.com/MeowTonynoh/MeowNovowareFucker/releases/tag/V1" },
+    @{ Name="MeowImportsChecker"; Category="Tonynoh";    Type="GitHub"; Desc="Checks DLL imports for cheat indicators"; URL="https://github.com/MeowTonynoh/MeowImportsChecker/releases/tag/MeowImportsChecker" },
+    @{ Name="PSHunter";           Category="Praiselily"; Type="GitHub"; Desc="Hunts suspicious PowerShell activity";    URL="https://github.com/praiselily/PSHunter/releases/tag/Built" },
+    @{ Name="AltDetector";        Category="Praiselily"; Type="GitHub"; Desc="Detects alternate/secondary accounts";    URL="https://github.com/praiselily/AltDetector/releases/tag/Detector" },
+    @{ Name="WeHateFakers";       Category="Praiselily"; Type="Cmd";    Desc="Checks hotspot/VPN connection logs";      Command="iwr https://raw.githubusercontent.com/praiselily/WeHateFakers/refs/heads/main/HotspotLogs.ps1 | iex" },
+    @{ Name="CommonDirectories";  Category="Praiselily"; Type="Cmd";    Desc="Lists suspicious common directories";     Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/praiselily/lilith-ps/refs/heads/main/CommonDirectories.ps1')" },
+    @{ Name="HarddiskConverter";  Category="Praiselily"; Type="Cmd";    Desc="Converts harddisk identifiers";           Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/praiselily/lilith-ps/refs/heads/main/HarddiskConverter.ps1')" },
+    @{ Name="Services";           Category="Praiselily"; Type="Cmd";    Desc="Lists and reviews running services";      Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/praiselily/lilith-ps/refs/heads/main/Services.ps1')" },
+    @{ Name="SignedScheduledTasks";Category="Praiselily";Type="Cmd";    Desc="Checks signed scheduled tasks";           Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/praiselily/lilith-ps/refs/heads/main/Signed-Scheduled-Tasks.ps1')" },
+    @{ Name="RL ModAnalyzer";     Category="RedLotus";   Type="GitHub"; Desc="RedLotus mod file analyzer";              URL="https://github.com/ItzIceHere/RedLotus-Mod-Analyzer/releases/tag/RL" },
+    @{ Name="RL TaskSentinel";    Category="RedLotus";   Type="GitHub"; Desc="Monitors scheduled tasks for cheats";     URL="https://github.com/ItzIceHere/RedLotus-Task-Sentinel/releases/tag/RL" },
+    @{ Name="RL AltChecker";      Category="RedLotus";   Type="GitHub"; Desc="Checks for alternate account evidence";   URL="https://github.com/ItzIceHere/RedLotusAltChecker/releases/tag/RL" },
+    @{ Name="WinPrefetchView";    Category="Others";     Type="Web";    Desc="NirSoft prefetch file viewer";            URL="https://www.nirsoft.net/utils/win_prefetch_view.html" },
+    @{ Name="ComputerActivityView";Category="Others";    Type="Web";    Desc="NirSoft PC activity timeline viewer";     URL="https://www.nirsoft.net/utils/computer_activity_view.html" },
+    @{ Name="AmcacheParser";      Category="Others";     Type="Web";    Desc="Parses Amcache execution artifacts";      URL="https://download.ericzimmermanstools.com/net9/AmcacheParser.zip" },
+    @{ Name="JumpListExplorer";   Category="Others";     Type="Web";    Desc="Explores Windows Jump List entries";      URL="https://download.ericzimmermanstools.com/net9/JumpListExplorer.zip" },
+    @{ Name="SystemInformer";     Category="Others";     Type="Web";    Desc="Advanced process and kernel inspector";   URL="https://www.systeminformer.com/canary" },
+    @{ Name="DIE-engine";         Category="Others";     Type="Web";    Desc="Detects file types and packers";          URL="https://github.com/horsicq/DIE-engine/releases" },
+    @{ Name="DQRKIS-FUCKER";      Category="Others";     Type="Cmd";    Desc="Detects DQRKIS cheat signatures";         Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/cheesecatlol/DQRKIS-FUCKER/refs/heads/main/DqrkisFucker.ps1')" },
+    @{ Name="MacroDetector";      Category="Others";     Type="Cmd";    Desc="Detects macro/automation tool usage";     Command="Invoke-Expression (Invoke-RestMethod 'https://raw.githubusercontent.com/Nickk196/MacroDetector/refs/heads/main/MacroDetector.ps1')" }
 )
 
 # ==============================================================================
@@ -82,9 +82,6 @@ $ToolData = @(
         <SolidColorBrush x:Key="TextMain"   Color="#FFF4C8"/>
         <SolidColorBrush x:Key="TextMuted"  Color="#907830"/>
         <SolidColorBrush x:Key="ConsoleBg"  Color="#060400"/>
-        <SolidColorBrush x:Key="GhBg"       Color="#191932"/>
-        <SolidColorBrush x:Key="Ps1Bg"      Color="#0F2840"/>
-        <SolidColorBrush x:Key="WebBg"      Color="#20102D"/>
 
         <Style x:Key="SideBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
@@ -268,7 +265,7 @@ $ToolData = @(
                         <RowDefinition Height="10"/>
                         <RowDefinition Height="*"/>
                         <RowDefinition Height="10"/>
-                        <RowDefinition Height="160"/>
+                        <RowDefinition Height="240"/>
                     </Grid.RowDefinitions>
 
                     <!-- Status card -->
@@ -672,9 +669,7 @@ function Invoke-SSMode {
     $toolNames = $script:SSConfig[$Mode]
     $info      = $script:SSInfo[$Mode]
 
-    # Each SS mode gets its own timestamped subfolder so runs don't overwrite each other
-    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    $ssFolder  = "$installDir\${Mode}SS_$timestamp"
+    $ssFolder = "$installDir\${Mode}SS"
     New-Item -ItemType Directory -Path $ssFolder -Force | Out-Null
 
     Write-Log "=== $Mode SS — downloading $($toolNames.Count) tools to: $ssFolder ==="
@@ -697,7 +692,7 @@ function Invoke-SSMode {
 
     Write-Log "=== $Mode SS complete — $ok downloaded, $skip skipped, $fail missing ==="
     Write-Log "    Folder: $ssFolder"
-    Set-Status "Ready" "$Mode SS done — $ok tools saved to ${Mode}SS_$timestamp." "IDLE"
+    Set-Status "Ready" "$Mode SS done — $ok tools saved to ${Mode}SS folder." "IDLE"
 
     # Open the folder so the reviewer can see everything
     Start-Process -FilePath explorer.exe -ArgumentList "`"$ssFolder`""
@@ -1192,18 +1187,20 @@ foreach ($cat in $Categories) {
         $t   = $tool
         $btn = New-Object System.Windows.Controls.Button
         $btn.Content  = $t.Name
-        $btn.Width    = 200
-        $btn.Height   = 60
-        $btn.FontSize = 12
-        $btn.Margin   = "6"
-        $btn.Cursor   = "Hand"
-        $btn.Foreground = "#F3E5F5"
+        $btn.Width      = 155
+        $btn.Height     = 40
+        $btn.FontSize   = 11
+        $btn.Margin     = "4"
+        $btn.Cursor     = "Hand"
+        $btn.Foreground = "#FFF4C8"
+        $btn.Background = "#1E1600"
 
-        switch ($t.Type) {
-            "Cmd"    { $btn.Background = "#0F2840" }
-            "GitHub" { $btn.Background = "#191932" }
-            "Web"    { $btn.Background = "#20102D" }
-        }
+        # Tooltip with description
+        $tt = New-Object System.Windows.Controls.ToolTip
+        $tt.Content     = $t.Desc
+        $tt.Background  = [System.Windows.Media.Brushes]::Black
+        $tt.Foreground  = [System.Windows.Media.Brushes]::White
+        $btn.ToolTip    = $tt
 
         $btn.Template = [Windows.Markup.XamlReader]::Parse("
 <ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Button'>
