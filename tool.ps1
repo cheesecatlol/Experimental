@@ -597,37 +597,110 @@ $script:SSInfo = @{
     Full   = "Full SS — launches ALL tools for a deep/comprehensive review."
 }
 
+function Invoke-SSDownloadOnly {
+    # Downloads a single tool into $destDir without launching anything.
+    # Returns $true on success, $false on failure.
+    param($tool, [string]$destDir)
+    $name = $tool.Name
+
+    try {
+        switch ($tool.Type) {
+
+            "GitHub" {
+                $asset = Get-GitHubAssetUrl -ReleaseUrl $tool.URL
+                if (-not $asset) {
+                    Write-Log "  [SKIP] $name — no downloadable asset found on GitHub."
+                    return $false
+                }
+                $toolDir  = "$destDir\$name"
+                if (-not (Test-Path $toolDir)) { New-Item -ItemType Directory -Path $toolDir -Force | Out-Null }
+                $destFile = "$toolDir\$($asset.name)"
+                if (Test-Path $destFile) {
+                    Write-Log "  [CACHED] $name — already downloaded, skipping."
+                } else {
+                    Write-Log "  [DL] $name — $($asset.name)"
+                    Save-UrlToFile -Uri $asset.url -OutFile $destFile
+                    Write-Log "  [OK] $name — download complete."
+                }
+                if ($asset.name -match "\.zip$") {
+                    Expand-Archive -Path $destFile -DestinationPath $toolDir -Force -ErrorAction Stop
+                    Write-Log "  [UNZIP] $name — extracted."
+                }
+                return $true
+            }
+
+            "Web" {
+                $url = $tool.URL
+                if ($url -match "\.(zip|exe|cmd|bat)$") {
+                    $fileName = ($url -split "/")[-1]
+                    $toolDir  = "$destDir\$name"
+                    if (-not (Test-Path $toolDir)) { New-Item -ItemType Directory -Path $toolDir -Force | Out-Null }
+                    $destFile = "$toolDir\$fileName"
+                    if (Test-Path $destFile) {
+                        Write-Log "  [CACHED] $name — already downloaded, skipping."
+                    } else {
+                        Write-Log "  [DL] $name — $fileName"
+                        Save-UrlToFile -Uri $url -OutFile $destFile
+                        Write-Log "  [OK] $name — download complete."
+                    }
+                    if ($fileName -match "\.zip$") {
+                        Expand-Archive -Path $destFile -DestinationPath $toolDir -Force -ErrorAction Stop
+                        Write-Log "  [UNZIP] $name — extracted."
+                    }
+                    return $true
+                } else {
+                    Write-Log "  [SKIP] $name — web link only, nothing to download."
+                    return $false
+                }
+            }
+
+            "Cmd" {
+                # Cmd tools are PowerShell scripts that run remotely — skip in SS mode.
+                Write-Log "  [SKIP] $name — command-line tool, not downloaded in SS mode."
+                return $false
+            }
+        }
+    } catch {
+        Write-Log "  [ERR] $name — $_"
+        return $false
+    }
+    return $false
+}
+
 function Invoke-SSMode {
     param([string]$Mode)
     $toolNames = $script:SSConfig[$Mode]
     $info      = $script:SSInfo[$Mode]
-    Write-Log "=== Starting $Mode SS ($($toolNames.Count) tools) ==="
-    Set-Status "$Mode SS" $info "BUSY"
-    $launched = 0
+
+    # Each SS mode gets its own timestamped subfolder so runs don't overwrite each other
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $ssFolder  = "$installDir\${Mode}SS_$timestamp"
+    New-Item -ItemType Directory -Path $ssFolder -Force | Out-Null
+
+    Write-Log "=== $Mode SS — downloading $($toolNames.Count) tools to: $ssFolder ==="
+    Set-Status "$Mode SS" "Downloading tools... please wait." "BUSY"
+
+    $ok   = 0
+    $skip = 0
+    $fail = 0
+
     foreach ($name in $toolNames) {
         $tData = $ToolData | Where-Object { $_.Name -eq $name } | Select-Object -First 1
-        if (-not $tData) { Write-Log "  [SKIP] '$name' not found in tool list."; continue }
-        Write-Log "  Launching: $name ($($tData.Type))"
-        try {
-            switch ($tData.Type) {
-                "Cmd" {
-                    Start-CmdToolCommand -Command $tData.Command
-                }
-                "GitHub" {
-                    Invoke-ToolDownloadAndRun -tool $tData
-                }
-                "Web" {
-                    Invoke-WebToolDownload -tool $tData
-                }
-            }
-            $launched++
-        } catch {
-            Write-Log "  [ERR] $name — $_"
+        if (-not $tData) {
+            Write-Log "  [MISS] '$name' not in tool list — check SSConfig."
+            $fail++
+            continue
         }
-        Start-Sleep -Milliseconds 400   # slight stagger so windows don't stack on top of each other
+        $result = Invoke-SSDownloadOnly -tool $tData -destDir $ssFolder
+        if ($result) { $ok++ } else { $skip++ }
     }
-    Write-Log "=== $Mode SS complete — $launched/$($toolNames.Count) tools launched ==="
-    Set-Status "Ready" "$Mode SS done — $launched tools launched." "IDLE"
+
+    Write-Log "=== $Mode SS complete — $ok downloaded, $skip skipped, $fail missing ==="
+    Write-Log "    Folder: $ssFolder"
+    Set-Status "Ready" "$Mode SS done — $ok tools saved to ${Mode}SS_$timestamp." "IDLE"
+
+    # Open the folder so the reviewer can see everything
+    Start-Process -FilePath explorer.exe -ArgumentList "`"$ssFolder`""
 }
 
 # ==============================================================================
