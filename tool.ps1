@@ -65,288 +65,355 @@ $ToolData = @(
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="CheesySSTool"
-    Width="1200" Height="760"
-    MinWidth="1200" MinHeight="760"
+    Width="1280" Height="800"
+    MinWidth="1100" MinHeight="650"
     WindowStartupLocation="CenterScreen"
     ResizeMode="CanResize"
     WindowStyle="None"
     AllowsTransparency="True"
     Background="Transparent"
     FontFamily="Segoe UI">
-    <Window.Resources>
-        <SolidColorBrush x:Key="MainBg"     Color="#0F0B00"/>
-        <SolidColorBrush x:Key="SidebarBg"  Color="#1A1200"/>
-        <SolidColorBrush x:Key="CardBg"     Color="#221800"/>
-        <SolidColorBrush x:Key="Accent"     Color="#F5C200"/>
-        <SolidColorBrush x:Key="AccentDim"  Color="#A07800"/>
-        <SolidColorBrush x:Key="TextMain"   Color="#FFF4C8"/>
-        <SolidColorBrush x:Key="TextMuted"  Color="#907830"/>
-        <SolidColorBrush x:Key="ConsoleBg"  Color="#060400"/>
+  <Window.Resources>
+    <!-- Colors matching the reference screenshot -->
+    <SolidColorBrush x:Key="WinBg"       Color="#0D1B2A"/>
+    <SolidColorBrush x:Key="TitleBg"     Color="#0A1628"/>
+    <SolidColorBrush x:Key="SidebarBg"   Color="#0A1628"/>
+    <SolidColorBrush x:Key="ContentBg"   Color="#0D1B2A"/>
+    <SolidColorBrush x:Key="CardBg"      Color="#112240"/>
+    <SolidColorBrush x:Key="CardBorder"  Color="#1A3A5C"/>
+    <SolidColorBrush x:Key="Accent"      Color="#4A9EFF"/>
+    <SolidColorBrush x:Key="AccentGreen" Color="#00D4AA"/>
+    <SolidColorBrush x:Key="TextPrimary" Color="#E8F4FF"/>
+    <SolidColorBrush x:Key="TextMuted"   Color="#5A7A9A"/>
+    <SolidColorBrush x:Key="TextDim"     Color="#3A5A7A"/>
+    <SolidColorBrush x:Key="ConsoleBg"   Color="#060E18"/>
+    <SolidColorBrush x:Key="SepColor"    Color="#1A3A5C"/>
 
-        <Style x:Key="SideBtn" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="Height" Value="38"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="4">
-                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="14,0"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#2A1E00"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+    <!-- Title bar window buttons -->
+    <Style x:Key="WinBtn" TargetType="Button">
+      <Setter Property="Width"           Value="46"/>
+      <Setter Property="Height"          Value="32"/>
+      <Setter Property="Background"      Value="Transparent"/>
+      <Setter Property="Foreground"      Value="{StaticResource TextMuted}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize"        Value="12"/>
+      <Setter Property="Cursor"          Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="b" Background="{TemplateBinding Background}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="b" Property="Background" Value="#1A3A5C"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
 
-        <Style x:Key="SSBtn" TargetType="Button">
-            <Setter Property="Background" Value="#1E1600"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="Margin" Value="0,0,0,4"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="4" BorderBrush="#3D2E00" BorderThickness="1">
-                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#F5C200"/>
-                                <Setter Property="Foreground" Value="#0F0B00"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+    <!-- Close button red hover -->
+    <Style x:Key="CloseWinBtn" TargetType="Button" BasedOn="{StaticResource WinBtn}">
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="b" Background="{TemplateBinding Background}">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="b" Property="Background" Value="#C0392B"/>
+                <Setter Property="Foreground" Value="White"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
 
-        <Style x:Key="GearBtn" TargetType="Button">
-            <Setter Property="Background" Value="#1E1600"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="Margin" Value="0,0,0,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="4" BorderBrush="#3D2E00" BorderThickness="1">
-                            <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#2A1E00"/>
-                                <Setter Property="Foreground" Value="{StaticResource Accent}"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+    <!-- Sidebar icon buttons -->
+    <Style x:Key="NavBtn" TargetType="Button">
+      <Setter Property="Width"           Value="48"/>
+      <Setter Property="Height"          Value="48"/>
+      <Setter Property="Background"      Value="Transparent"/>
+      <Setter Property="Foreground"      Value="{StaticResource TextMuted}"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="FontSize"        Value="18"/>
+      <Setter Property="Cursor"          Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="8" Margin="4,2">
+              <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="b" Property="Background" Value="#1A3A5C"/>
+                <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
 
-        <Style x:Key="TitleBtn" TargetType="Button">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
-            <Setter Property="Width" Value="40"/>
-            <Setter Property="Height" Value="36"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="13"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#33F5C200"/>
-                                <Setter Property="Foreground" Value="#F5C200"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
+    <!-- SS mode buttons -->
+    <Style x:Key="SSBtn" TargetType="Button">
+      <Setter Property="Height"          Value="32"/>
+      <Setter Property="Margin"          Value="0,0,0,4"/>
+      <Setter Property="Background"      Value="#0D2340"/>
+      <Setter Property="Foreground"      Value="{StaticResource TextPrimary}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush"     Value="{StaticResource CardBorder}"/>
+      <Setter Property="FontSize"        Value="11"/>
+      <Setter Property="Cursor"          Value="Hand"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="Button">
+            <Border x:Name="b" Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="4">
+              <ContentPresenter HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="b" Property="Background" Value="#1A3A5C"/>
+                <Setter TargetName="b" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                <Setter Property="Foreground" Value="{StaticResource Accent}"/>
+              </Trigger>
+              <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="b" Property="Background" Value="#4A9EFF"/>
+                <Setter Property="Foreground" Value="White"/>
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
 
-    <Border Background="{StaticResource MainBg}" BorderBrush="#3D2E00" BorderThickness="1" CornerRadius="8">
+    <!-- Tab items -->
+    <Style TargetType="TabItem">
+      <Setter Property="Foreground"  Value="{StaticResource TextMuted}"/>
+      <Setter Property="FontSize"    Value="11"/>
+      <Setter Property="Padding"     Value="14,7"/>
+      <Setter Property="Cursor"      Value="Hand"/>
+      <Setter Property="Background"  Value="Transparent"/>
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="TabItem">
+            <Border x:Name="tb" Background="Transparent" CornerRadius="4" Margin="2,4,2,0" Padding="14,6">
+              <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsSelected" Value="True">
+                <Setter TargetName="tb" Property="Background" Value="{StaticResource Accent}"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+              </Trigger>
+              <MultiTrigger>
+                <MultiTrigger.Conditions>
+                  <Condition Property="IsMouseOver" Value="True"/>
+                  <Condition Property="IsSelected"  Value="False"/>
+                </MultiTrigger.Conditions>
+                <Setter TargetName="tb" Property="Background" Value="#1A3A5C"/>
+                <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+              </MultiTrigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
+  </Window.Resources>
+
+  <!-- Outer border / window chrome -->
+  <Border Background="{StaticResource WinBg}" BorderBrush="#1A3A5C" BorderThickness="1" CornerRadius="8">
+    <Grid>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="38"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+
+      <!-- ── Title bar ── -->
+      <Border Grid.Row="0" Background="{StaticResource TitleBg}" CornerRadius="8,8,0,0">
         <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="42"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="56"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <!-- App icon area -->
+          <TextBlock Grid.Column="0" Text="&#x25C6;" FontSize="14" Foreground="{StaticResource Accent}"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+          <!-- Title -->
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+            <TextBlock Text="CheesySSTool" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+            <Border Background="#1A3A5C" CornerRadius="3" Margin="8,0,0,0" Padding="6,1">
+              <TextBlock Text="SS Tool" FontSize="9" Foreground="{StaticResource Accent}"/>
+            </Border>
+          </StackPanel>
+          <!-- Window controls -->
+          <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+            <Button x:Name="MinBtn"   Style="{StaticResource WinBtn}"      Content="&#x2212;"/>
+            <Button x:Name="MaxBtn"   Style="{StaticResource WinBtn}"      Content="&#x25A1;"/>
+            <Button x:Name="CloseBtn" Style="{StaticResource CloseWinBtn}" Content="&#x2715;"/>
+          </StackPanel>
+        </Grid>
+      </Border>
 
-            <!-- Title Bar -->
-            <Border Grid.Row="0" Background="{StaticResource SidebarBg}" CornerRadius="8,8,0,0">
-                <Grid Margin="16,0">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="=^.^=" FontSize="14" FontWeight="Bold" Foreground="{StaticResource Accent}" FontFamily="Consolas"/>
-                        <TextBlock Text=" CheesySSTool" FontSize="14" FontWeight="SemiBold" Foreground="{StaticResource TextMain}"/>
-                        <TextBlock Text=" - by cheese cat" FontSize="11" Foreground="{StaticResource TextMuted}" VerticalAlignment="Center" Margin="4,0,0,0"/>
-                    </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button x:Name="MinBtn"   Style="{StaticResource TitleBtn}" Content="_"/>
-                        <Button x:Name="MaxBtn"   Style="{StaticResource TitleBtn}" Content="&#x25A1;"/>
-                        <Button x:Name="CloseBtn" Style="{StaticResource TitleBtn}" Content="X"/>
-                    </StackPanel>
-                </Grid>
+      <!-- ── Body ── -->
+      <Grid Grid.Row="1">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="56"/>
+          <ColumnDefinition Width="200"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Icon-only nav rail -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SepColor}" BorderThickness="0,0,1,0">
+          <StackPanel VerticalAlignment="Top" Margin="0,12,0,0">
+            <Button x:Name="FastSSBtn"   Style="{StaticResource NavBtn}" FontSize="14" Foreground="{StaticResource Accent}">
+              <Button.Content>
+                <TextBlock Text="&#x26A1;" FontSize="16"/>
+              </Button.Content>
+              <Button.ToolTip><ToolTip Content="Fast SS" Background="#112240" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource Accent}" BorderThickness="1"/></Button.ToolTip>
+            </Button>
+            <Button x:Name="NormalSSBtn" Style="{StaticResource NavBtn}">
+              <Button.Content>
+                <TextBlock Text="&#x1F50D;" FontSize="14"/>
+              </Button.Content>
+              <Button.ToolTip><ToolTip Content="Normal SS" Background="#112240" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource Accent}" BorderThickness="1"/></Button.ToolTip>
+            </Button>
+            <Button x:Name="FullSSBtn"   Style="{StaticResource NavBtn}">
+              <Button.Content>
+                <TextBlock Text="&#x1F6E1;" FontSize="14"/>
+              </Button.Content>
+              <Button.ToolTip><ToolTip Content="Full SS" Background="#112240" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource Accent}" BorderThickness="1"/></Button.ToolTip>
+            </Button>
+            <Rectangle Height="1" Fill="{StaticResource SepColor}" Margin="8,8"/>
+            <Button x:Name="OpenFolderBtn" Style="{StaticResource NavBtn}">
+              <Button.Content><TextBlock Text="&#x1F4C2;" FontSize="14"/></Button.Content>
+              <Button.ToolTip><ToolTip Content="Open Install Folder" Background="#112240" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource Accent}" BorderThickness="1"/></Button.ToolTip>
+            </Button>
+            <Button x:Name="ClearCacheBtn" Style="{StaticResource NavBtn}">
+              <Button.Content><TextBlock Text="&#x1F5D1;" FontSize="14"/></Button.Content>
+              <Button.ToolTip><ToolTip Content="Clear Cache" Background="#112240" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource Accent}" BorderThickness="1"/></Button.ToolTip>
+            </Button>
+            <Button x:Name="OpenCmdBtn" Style="{StaticResource NavBtn}">
+              <Button.Content><TextBlock Text="&#x1F5A5;" FontSize="14"/></Button.Content>
+              <Button.ToolTip><ToolTip Content="Open CMD" Background="#112240" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource Accent}" BorderThickness="1"/></Button.ToolTip>
+            </Button>
+            <!-- Gear at very bottom -->
+            <Button x:Name="SettingsBtn" Style="{StaticResource NavBtn}" VerticalAlignment="Bottom" Margin="0,20,0,0">
+              <Button.Content><TextBlock Text="&#x2699;" FontSize="16"/></Button.Content>
+              <Button.ToolTip><ToolTip Content="Settings" Background="#112240" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource Accent}" BorderThickness="1"/></Button.ToolTip>
+            </Button>
+          </StackPanel>
+        </Border>
+
+        <!-- Left panel: SS mode labels + cat + info -->
+        <Border Grid.Column="1" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SepColor}" BorderThickness="0,0,1,0">
+          <StackPanel Margin="12,14,12,14">
+            <!-- Cat -->
+            <Border Background="#091220" CornerRadius="6" Margin="0,0,0,14" Padding="0,10">
+              <TextBlock x:Name="CatBlock"
+                Text=" /\_____/\ &#x0a; / ^ ^ \ &#x0a; ( = w = )&#x0a; \ (___) / &#x0a; / | | \ &#x0a; (__| |__)"
+                FontFamily="Consolas" FontSize="9"
+                Foreground="{StaticResource Accent}"
+                HorizontalAlignment="Center"
+                TextAlignment="Left"
+                xml:space="preserve"/>
             </Border>
 
-            <!-- Body -->
-            <Grid Grid.Row="1">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="210"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
+            <TextBlock Text="SCREENSHARE" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextDim}" Margin="2,0,0,6"/>
+            <Button x:Name="FastSSLbl"   Style="{StaticResource SSBtn}" Content="&#x26A1;  Fast SS"/>
+            <Button x:Name="NormalSSLbl" Style="{StaticResource SSBtn}" Content="&#x1F50D;  Normal SS"/>
+            <Button x:Name="FullSSLbl"   Style="{StaticResource SSBtn}" Content="&#x1F6E1;  Full SS"/>
 
-                <!-- Sidebar -->
-                <Border Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="#3D2E00" BorderThickness="0,0,1,0">
-                    <StackPanel Margin="10,14,10,14">
+            <Rectangle Height="1" Fill="{StaticResource SepColor}" Margin="0,10"/>
 
-                        <!-- Cat ASCII art -->
-                        <Border Background="#0A0700" CornerRadius="6" Margin="0,0,0,14" Padding="0,10">
-                            <TextBlock x:Name="CatBlock"
-                                Text=" /\_____/\ &#x0a; / ^ ^ \ &#x0a; ( = w = )&#x0a; \ (___) / &#x0a; / | | \ &#x0a; (__| |__)"
-                                FontFamily="Consolas" FontSize="9"
-                                Foreground="{StaticResource Accent}"
-                                HorizontalAlignment="Center"
-                                TextAlignment="Left"
-                                xml:space="preserve"/>
-                        </Border>
+            <TextBlock Text="ACTIONS" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextDim}" Margin="2,0,0,6"/>
+            <Button x:Name="OpenFolderLbl"  Style="{StaticResource SSBtn}" Content="&#x1F4C2;  Open Folder"/>
+            <Button x:Name="ClearCacheLbl"  Style="{StaticResource SSBtn}" Content="&#x1F5D1;  Clear Cache"/>
+            <Button x:Name="OpenCmdLbl"     Style="{StaticResource SSBtn}" Content="&#x1F5A5;  Open CMD"/>
 
-                        <!-- SCREENSHARE SECTION -->
-                        <TextBlock Text="SCREENSHARE" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="4,0,0,6"/>
-                        <Button x:Name="FastSSBtn"   Content="&#x26A1; Fast SS"   Style="{StaticResource SSBtn}"/>
-                        <Button x:Name="NormalSSBtn" Content="&#x1F50D; Normal SS" Style="{StaticResource SSBtn}"/>
-                        <Button x:Name="FullSSBtn"   Content="&#x1F6E1; Full SS"   Style="{StaticResource SSBtn}"/>
+            <Rectangle Height="1" Fill="{StaticResource SepColor}" Margin="0,10"/>
 
-                        <Separator Background="#3D2E00" Margin="0,10,0,10"/>
+            <TextBlock Text="INFO" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextDim}" Margin="2,0,0,6"/>
+            <TextBlock Text="cheese cat" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}" Margin="2,0,0,2"/>
+            <TextBlock Text="discord: cheese_cat0" FontSize="9" Foreground="{StaticResource TextMuted}" Margin="2,0,0,1"/>
+            <TextBlock Text="github: cheesecatlol"  FontSize="9" Foreground="{StaticResource TextMuted}" Margin="2,0,0,8"/>
+            <TextBlock x:Name="InstPathBlock" Text="" FontSize="8" Foreground="{StaticResource TextDim}" TextWrapping="Wrap" Margin="2,0,0,0"/>
 
-                        <!-- ACTIONS SECTION -->
-                        <TextBlock Text="ACTIONS" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="4,0,0,6"/>
-                        <Button x:Name="OpenFolderBtn" Content=" Open Install Folder"    Style="{StaticResource SideBtn}"/>
-                        <Button x:Name="ClearCacheBtn" Content=" Clear Downloaded Files" Style="{StaticResource SideBtn}"/>
-                        <Button x:Name="OpenCmdBtn"    Content=" Open CMD"               Style="{StaticResource SideBtn}"/>
+            <Button x:Name="SettingsLbl" Style="{StaticResource SSBtn}" Content="&#x2699;  Settings" Margin="0,10,0,0"/>
+          </StackPanel>
+        </Border>
 
-                        <Separator Background="#3D2E00" Margin="0,10,0,10"/>
+        <!-- Main content area -->
+        <Grid Grid.Column="2" Margin="0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="200"/>
+          </Grid.RowDefinitions>
 
-                        <!-- CREDITS -->
-                        <TextBlock Text="CREDITS" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextMuted}" Margin="4,0,0,6"/>
-                        <TextBlock Text="Made by cheese cat" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource TextMain}" Margin="4,2,0,4"/>
-                        <TextBlock Text="Discord: cheese_cat0"   FontSize="10" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" Margin="4,1,0,0"/>
-                        <TextBlock Text="GitHub: cheesecatlol"   FontSize="10" Foreground="{StaticResource TextMuted}" TextWrapping="Wrap" Margin="4,1,0,0"/>
-
-                        <Separator Background="#3D2E00" Margin="0,10,0,10"/>
-
-                        <TextBlock x:Name="InstPathBlock" Text="" FontSize="9" Foreground="#5A4010" TextWrapping="Wrap" Margin="4,0,0,6"/>
-
-                        <!-- SETTINGS gear at bottom -->
-                        <Button x:Name="SettingsBtn" Content="&#x2699;  Settings" Style="{StaticResource GearBtn}"/>
-                    </StackPanel>
-                </Border>
-
-                <!-- Main Panel -->
-                <Grid Grid.Column="1" Margin="16,14,16,14">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="6"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="6"/>
-                        <RowDefinition Height="220"/>
-                    </Grid.RowDefinitions>
-
-                    <!-- Status card -->
-                    <Border Grid.Row="0" Background="{StaticResource CardBg}" CornerRadius="6" Padding="16,10">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel>
-                                <TextBlock x:Name="StatusTitle" Text="Ready"  FontSize="20" FontWeight="SemiBold" Foreground="{StaticResource TextMain}"/>
-                                <TextBlock x:Name="StatusSub"   Text="Select a tool to launch or download it." FontSize="11" Foreground="{StaticResource TextMuted}"/>
-                            </StackPanel>
-                            <Border Grid.Column="1" Background="#1A3D1A" CornerRadius="4" Padding="10,4" VerticalAlignment="Center">
-                                <TextBlock x:Name="StatusBadge" Text="IDLE" FontSize="12" FontWeight="Bold" Foreground="{StaticResource Accent}"/>
-                            </Border>
-                        </Grid>
-                    </Border>
-
-                    <!-- Tab control -->
-                    <Border Grid.Row="2" Background="{StaticResource CardBg}" CornerRadius="6">
-                        <TabControl x:Name="ToolsTab" Background="Transparent" BorderThickness="0" Padding="0">
-                            <TabControl.Resources>
-                                <Style TargetType="TabItem">
-                                    <Setter Property="Foreground" Value="{StaticResource TextMuted}"/>
-                                    <Setter Property="FontSize"   Value="11"/>
-                                    <Setter Property="Padding"    Value="12,6"/>
-                                    <Setter Property="Cursor"     Value="Hand"/>
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="TabItem">
-                                                <Border x:Name="TabBorder" Background="Transparent" CornerRadius="4" Margin="3,4,3,0" Padding="12,5">
-                                                    <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                </Border>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsSelected" Value="True">
-                                                        <Setter TargetName="TabBorder" Property="Background" Value="{StaticResource Accent}"/>
-                                                        <Setter Property="Foreground" Value="#0F0B00"/>
-                                                    </Trigger>
-                                                    <MultiTrigger>
-                                                        <MultiTrigger.Conditions>
-                                                            <Condition Property="IsMouseOver" Value="True"/>
-                                                            <Condition Property="IsSelected"  Value="False"/>
-                                                        </MultiTrigger.Conditions>
-                                                        <Setter TargetName="TabBorder" Property="Background" Value="#2A1E00"/>
-                                                        <Setter Property="Foreground" Value="{StaticResource TextMain}"/>
-                                                    </MultiTrigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </TabControl.Resources>
-                        </TabControl>
-                    </Border>
-
-                    <!-- Console -->
-                    <Border Grid.Row="4" Background="{StaticResource ConsoleBg}" CornerRadius="6" Padding="12,8">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="ACTIVITY CONSOLE" FontSize="9" FontWeight="Bold" Foreground="#5A4010" FontFamily="Consolas" Margin="0,0,0,4"/>
-                            <TextBox x:Name="LogBox"
-                                Grid.Row="1"
-                                Background="Transparent"
-                                Foreground="{StaticResource Accent}"
-                                BorderThickness="0"
-                                FontFamily="Consolas"
-                                FontSize="11"
-                                IsReadOnly="True"
-                                VerticalScrollBarVisibility="Auto"
-                                TextWrapping="Wrap"/>
-                        </Grid>
-                    </Border>
-                </Grid>
+          <!-- Status bar -->
+          <Border Grid.Row="0" Background="{StaticResource TitleBg}" BorderBrush="{StaticResource SepColor}" BorderThickness="0,0,0,1" Padding="20,10">
+            <Grid>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+              </Grid.ColumnDefinitions>
+              <StackPanel>
+                <TextBlock x:Name="StatusTitle" Text="Ready" FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
+                <TextBlock x:Name="StatusSub"   Text="Select a tool to launch or download." FontSize="10" Foreground="{StaticResource TextMuted}" Margin="0,2,0,0"/>
+              </StackPanel>
+              <Border Grid.Column="1" Background="#0D2340" BorderBrush="{StaticResource Accent}" BorderThickness="1" CornerRadius="4" Padding="12,4" VerticalAlignment="Center">
+                <TextBlock x:Name="StatusBadge" Text="IDLE" FontSize="11" FontWeight="Bold" Foreground="{StaticResource Accent}"/>
+              </Border>
             </Grid>
+          </Border>
+
+          <!-- Tool tabs -->
+          <Border Grid.Row="1" Background="{StaticResource ContentBg}" Padding="0">
+            <TabControl x:Name="ToolsTab" Background="Transparent" BorderThickness="0" Padding="0">
+              <TabControl.Resources>
+                <Style TargetType="TabPanel">
+                  <Setter Property="Background" Value="{StaticResource TitleBg}"/>
+                </Style>
+              </TabControl.Resources>
+            </TabControl>
+          </Border>
+
+          <!-- Console -->
+          <Border Grid.Row="2" Background="{StaticResource ConsoleBg}" BorderBrush="{StaticResource SepColor}" BorderThickness="0,1,0,0" Padding="16,10">
+            <Grid>
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+              </Grid.RowDefinitions>
+              <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                <TextBlock Text="&#x25CF;" Foreground="{StaticResource AccentGreen}" FontSize="8" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                <TextBlock Text="ACTIVITY LOG" FontSize="9" FontWeight="Bold" Foreground="{StaticResource TextDim}" VerticalAlignment="Center"/>
+              </StackPanel>
+              <TextBox x:Name="LogBox"
+                Grid.Row="1"
+                Background="Transparent"
+                Foreground="{StaticResource Accent}"
+                BorderThickness="0"
+                FontFamily="Consolas"
+                FontSize="11"
+                IsReadOnly="True"
+                VerticalScrollBarVisibility="Auto"
+                TextWrapping="Wrap"/>
+            </Grid>
+          </Border>
         </Grid>
-    </Border>
+      </Grid>
+    </Grid>
+  </Border>
 </Window>
 "@
 
@@ -373,6 +440,13 @@ $FastSSBtn     = $window.FindName("FastSSBtn")
 $NormalSSBtn   = $window.FindName("NormalSSBtn")
 $FullSSBtn     = $window.FindName("FullSSBtn")
 $SettingsBtn   = $window.FindName("SettingsBtn")
+$FastSSLbl     = $window.FindName("FastSSLbl")
+$NormalSSLbl   = $window.FindName("NormalSSLbl")
+$FullSSLbl     = $window.FindName("FullSSLbl")
+$OpenFolderLbl = $window.FindName("OpenFolderLbl")
+$ClearCacheLbl = $window.FindName("ClearCacheLbl")
+$OpenCmdLbl    = $window.FindName("OpenCmdLbl")
+$SettingsLbl   = $window.FindName("SettingsLbl")
 
 $InstPathBlock.Text = "Install path:`n$installDir"
 
@@ -716,7 +790,7 @@ function Show-SettingsWindow {
     AllowsTransparency="True"
     Background="Transparent"
     FontFamily="Segoe UI">
-    <Border Background="#0F0B00" BorderBrush="#3D2E00" BorderThickness="1" CornerRadius="8">
+    <Border Background="#060E18" BorderBrush="#1A3A5C" BorderThickness="1" CornerRadius="8">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="44"/>
@@ -725,10 +799,10 @@ function Show-SettingsWindow {
             </Grid.RowDefinitions>
 
             <!-- Title bar -->
-            <Border Grid.Row="0" Background="#1A1200" CornerRadius="8,8,0,0">
+            <Border Grid.Row="0" Background="#0A1628" CornerRadius="8,8,0,0">
                 <Grid Margin="16,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="&#x2699;" FontSize="15" Foreground="#F5C200" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <TextBlock Text="&#x2699;" FontSize="15" Foreground="#4A9EFF" VerticalAlignment="Center" Margin="0,0,8,0"/>
                         <TextBlock Text="Settings" FontSize="13" FontWeight="SemiBold" Foreground="#FFF4C8" VerticalAlignment="Center"/>
                     </StackPanel>
                     <Button x:Name="CloseSettingsBtn" HorizontalAlignment="Right"
@@ -745,9 +819,9 @@ function Show-SettingsWindow {
                 </Grid.ColumnDefinitions>
 
                 <!-- Left nav -->
-                <Border Background="#1A1200" BorderBrush="#3D2E00" BorderThickness="0,0,1,0">
+                <Border Background="#0A1628" BorderBrush="#1A3A5C" BorderThickness="0,0,1,0">
                     <StackPanel Margin="8,12,8,12">
-                        <Button x:Name="TabBtnSS"       Content="&#x1F50D;  Screenshare" Tag="ss"       Height="34" Margin="0,0,0,3" Cursor="Hand" Background="#F5C200" Foreground="#0F0B00" FontSize="11" FontWeight="SemiBold" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
+                        <Button x:Name="TabBtnSS"       Content="&#x1F50D;  Screenshare" Tag="ss"       Height="34" Margin="0,0,0,3" Cursor="Hand" Background="#4A9EFF" Foreground="White" FontSize="11" FontWeight="SemiBold" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
                         <Button x:Name="TabBtnTools"    Content="&#x1F4E6;  Tools"        Tag="tools"    Height="34" Margin="0,0,0,3" Cursor="Hand" Background="Transparent" Foreground="#FFF4C8" FontSize="11" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
                         <Button x:Name="TabBtnDownload" Content="&#x2B07;  Downloads"    Tag="download" Height="34" Margin="0,0,0,3" Cursor="Hand" Background="Transparent" Foreground="#FFF4C8" FontSize="11" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
                         <Button x:Name="TabBtnUI"       Content="&#x1F3A8;  Appearance"  Tag="ui"       Height="34" Margin="0,0,0,3" Cursor="Hand" Background="Transparent" Foreground="#FFF4C8" FontSize="11" BorderThickness="0" HorizontalContentAlignment="Left" Padding="10,0"/>
@@ -763,44 +837,44 @@ function Show-SettingsWindow {
                         <StackPanel x:Name="PanelSS" Margin="18,14,18,14" Visibility="Visible">
                             <TextBlock Text="SCREENSHARE MODES" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,10"/>
 
-                            <Border Background="#1A1200" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
+                            <Border Background="#0A1628" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
                                 <StackPanel>
-                                    <TextBlock Text="&#x26A1; Fast SS" FontSize="11" FontWeight="Bold" Foreground="#F5C200" Margin="0,0,0,4"/>
+                                    <TextBlock Text="&#x26A1; Fast SS" FontSize="11" FontWeight="Bold" Foreground="#4A9EFF" Margin="0,0,0,4"/>
                                     <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#907830"
                                         Text="Quick check — launches only the most essential tools. Use when you need a fast result without going deep."/>
                                     <Separator Background="#3D2E00" Margin="0,8,0,8"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <TextBlock Text="Stagger delay between tool launches (ms)" Foreground="#FFF4C8" FontSize="10" VerticalAlignment="Center"/>
-                                        <TextBox x:Name="FastDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10"/>
+                                        <TextBox x:Name="FastDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#060E18" Foreground="#FFF4C8" BorderBrush="#1A3A5C" BorderThickness="1" Padding="4,2" FontSize="10"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="#1A1200" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
+                            <Border Background="#0A1628" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
                                 <StackPanel>
-                                    <TextBlock Text="&#x1F50D; Normal SS" FontSize="11" FontWeight="Bold" Foreground="#F5C200" Margin="0,0,0,4"/>
+                                    <TextBlock Text="&#x1F50D; Normal SS" FontSize="11" FontWeight="Bold" Foreground="#4A9EFF" Margin="0,0,0,4"/>
                                     <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#907830"
                                         Text="Standard check — launches the core + journal/path tools. The go-to mode for most screenshare reviews."/>
                                     <Separator Background="#3D2E00" Margin="0,8,0,8"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <TextBlock Text="Stagger delay between tool launches (ms)" Foreground="#FFF4C8" FontSize="10" VerticalAlignment="Center"/>
-                                        <TextBox x:Name="NormalDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10"/>
+                                        <TextBox x:Name="NormalDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#060E18" Foreground="#FFF4C8" BorderBrush="#1A3A5C" BorderThickness="1" Padding="4,2" FontSize="10"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
 
-                            <Border Background="#1A1200" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
+                            <Border Background="#0A1628" CornerRadius="6" Padding="12,10" Margin="0,0,0,8">
                                 <StackPanel>
-                                    <TextBlock Text="&#x1F6E1; Full SS" FontSize="11" FontWeight="Bold" Foreground="#F5C200" Margin="0,0,0,4"/>
+                                    <TextBlock Text="&#x1F6E1; Full SS" FontSize="11" FontWeight="Bold" Foreground="#4A9EFF" Margin="0,0,0,4"/>
                                     <TextBlock TextWrapping="Wrap" FontSize="10" Foreground="#907830"
                                         Text="Deep check — launches every tool available. Use for high-priority or suspected cheaters requiring maximum coverage."/>
                                     <Separator Background="#3D2E00" Margin="0,8,0,8"/>
                                     <Grid>
                                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                                         <TextBlock Text="Stagger delay between tool launches (ms)" Foreground="#FFF4C8" FontSize="10" VerticalAlignment="Center"/>
-                                        <TextBox x:Name="FullDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10"/>
+                                        <TextBox x:Name="FullDelayBox" Grid.Column="1" Text="400" Width="60" Height="24" Background="#060E18" Foreground="#FFF4C8" BorderBrush="#1A3A5C" BorderThickness="1" Padding="4,2" FontSize="10"/>
                                     </Grid>
                                 </StackPanel>
                             </Border>
@@ -878,14 +952,14 @@ function Show-SettingsWindow {
 
                             <Separator Background="#3D2E00" Margin="0,8,0,10"/>
                             <TextBlock Text="INSTALL PATH" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
-                            <Border Background="#1A1200" CornerRadius="4" Padding="10,8">
+                            <Border Background="#0A1628" CornerRadius="4" Padding="10,8">
                                 <StackPanel>
                                     <TextBlock x:Name="InstallPathLabel" Text="" FontSize="10" Foreground="#FFF4C8" TextWrapping="Wrap"/>
                                     <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                                         <Button x:Name="OpenInstallDirBtn" Content="Open Folder" Height="26" Padding="10,0" Margin="0,0,6,0"
-                                            Background="#2A1E00" Foreground="#FFF4C8" FontSize="10" Cursor="Hand" BorderBrush="#3D2E00" BorderThickness="1"/>
+                                            Background="#0D2340" Foreground="#FFF4C8" FontSize="10" Cursor="Hand" BorderBrush="#1A3A5C" BorderThickness="1"/>
                                         <Button x:Name="ClearCacheBtn2" Content="Clear Cache" Height="26" Padding="10,0"
-                                            Background="#2A1E00" Foreground="#F5C200" FontSize="10" Cursor="Hand" BorderBrush="#3D2E00" BorderThickness="1"/>
+                                            Background="#0D2340" Foreground="#4A9EFF" FontSize="10" Cursor="Hand" BorderBrush="#1A3A5C" BorderThickness="1"/>
                                     </StackPanel>
                                 </StackPanel>
                             </Border>
@@ -931,7 +1005,7 @@ function Show-SettingsWindow {
                                     <TextBlock Text="Download timeout (seconds)" Foreground="#FFF4C8" FontSize="11"/>
                                     <TextBlock Text="Max time before a download is considered failed" Foreground="#907830" FontSize="9"/>
                                 </StackPanel>
-                                <TextBox x:Name="TimeoutBox" Grid.Column="1" Text="30" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10" VerticalAlignment="Center"/>
+                                <TextBox x:Name="TimeoutBox" Grid.Column="1" Text="30" Height="24" Background="#060E18" Foreground="#FFF4C8" BorderBrush="#1A3A5C" BorderThickness="1" Padding="4,2" FontSize="10" VerticalAlignment="Center"/>
                             </Grid>
 
                             <Grid Margin="0,0,0,8">
@@ -993,7 +1067,7 @@ function Show-SettingsWindow {
                                     <TextBlock Text="Max console lines" Foreground="#FFF4C8" FontSize="11"/>
                                     <TextBlock Text="Trim old lines when limit is reached (0 = unlimited)" Foreground="#907830" FontSize="9"/>
                                 </StackPanel>
-                                <TextBox x:Name="MaxConsoleLines" Grid.Column="1" Text="200" Height="24" Background="#0F0B00" Foreground="#FFF4C8" BorderBrush="#3D2E00" BorderThickness="1" Padding="4,2" FontSize="10" VerticalAlignment="Center"/>
+                                <TextBox x:Name="MaxConsoleLines" Grid.Column="1" Text="200" Height="24" Background="#060E18" Foreground="#FFF4C8" BorderBrush="#1A3A5C" BorderThickness="1" Padding="4,2" FontSize="10" VerticalAlignment="Center"/>
                             </Grid>
                         </StackPanel>
 
@@ -1050,9 +1124,9 @@ function Show-SettingsWindow {
 
                         <!-- ── ABOUT TAB ── -->
                         <StackPanel x:Name="PanelAbout" Margin="18,14,18,14" Visibility="Collapsed">
-                            <Border Background="#1A1200" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
+                            <Border Background="#0A1628" CornerRadius="6" Padding="14,12" Margin="0,0,0,12">
                                 <StackPanel>
-                                    <TextBlock Text="=^.^= CheesySSTool" FontFamily="Consolas" FontSize="14" FontWeight="Bold" Foreground="#F5C200" Margin="0,0,0,4"/>
+                                    <TextBlock Text="=^.^= CheesySSTool" FontFamily="Consolas" FontSize="14" FontWeight="Bold" Foreground="#4A9EFF" Margin="0,0,0,4"/>
                                     <TextBlock Text="Anti-cheat screenshare review toolkit" FontSize="10" Foreground="#907830"/>
                                     <Separator Background="#3D2E00" Margin="0,10,0,10"/>
                                     <Grid Margin="0,0,0,4">
@@ -1073,7 +1147,7 @@ function Show-SettingsWindow {
                                 </StackPanel>
                             </Border>
                             <TextBlock Text="INCLUDED TOOL AUTHORS" FontSize="9" FontWeight="Bold" Foreground="#907830" Margin="0,0,0,8"/>
-                            <Border Background="#1A1200" CornerRadius="4" Padding="10,8">
+                            <Border Background="#0A1628" CornerRadius="4" Padding="10,8">
                                 <StackPanel>
                                     <TextBlock Text="Orbdiff • Spokwn • MeowTonynoh" Foreground="#FFF4C8" FontSize="10" Margin="0,0,0,3"/>
                                     <TextBlock Text="Praiselily • ItzIceHere (RedLotus)" Foreground="#FFF4C8" FontSize="10" Margin="0,0,0,3"/>
@@ -1088,11 +1162,11 @@ function Show-SettingsWindow {
             </Grid>
 
             <!-- Footer -->
-            <Border Grid.Row="2" Background="#1A1200" CornerRadius="0,0,8,8" Padding="16,10">
+            <Border Grid.Row="2" Background="#0A1628" CornerRadius="0,0,8,8" Padding="16,10">
                 <Grid>
                     <TextBlock x:Name="SettingsHint" Text="Changes apply immediately." FontSize="9" Foreground="#5A4010" VerticalAlignment="Center"/>
                     <Button x:Name="SaveCloseBtn" Content="Save &amp; Close" HorizontalAlignment="Right"
-                        Height="30" Padding="16,0" Background="#F5C200" Foreground="#0F0B00"
+                        Height="30" Padding="16,0" Background="#4A9EFF" Foreground="White"
                         FontSize="11" FontWeight="SemiBold" Cursor="Hand" BorderThickness="0"/>
                 </Grid>
             </Border>
@@ -1152,8 +1226,8 @@ function Show-SettingsWindow {
         param($tag)
         foreach ($key in $tabPanels.Keys) {
             $tabPanels[$key].Visibility = if ($key -eq $tag) { "Visible" } else { "Collapsed" }
-            $tabBtns[$key].Background   = if ($key -eq $tag) { "#F5C200" } else { "Transparent" }
-            $tabBtns[$key].Foreground   = if ($key -eq $tag) { "#0F0B00" } else { "#FFF4C8" }
+            $tabBtns[$key].Background   = if ($key -eq $tag) { "#4A9EFF" } else { "Transparent" }
+            $tabBtns[$key].Foreground   = if ($key -eq $tag) { "White" } else { "#FFF4C8" }
             $tabBtns[$key].FontWeight   = if ($key -eq $tag) { "SemiBold" } else { "Normal" }
         }
     }
@@ -1195,31 +1269,31 @@ foreach ($cat in $Categories) {
         $btn.FontSize   = 11
         $btn.Margin     = "4"
         $btn.Cursor     = "Hand"
-        $btn.Foreground = "#FFF4C8"
-        $btn.Background = "#1E1600"
+        $btn.Foreground = "#E8F4FF"
+        $btn.Background = "#112240"
 
         $btn.Template = [Windows.Markup.XamlReader]::Parse("
 <ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
                  xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
                  TargetType='Button'>
-    <Border x:Name='brd' Background='#1E1600' CornerRadius='6' BorderBrush='#3D2E00' BorderThickness='1'>
+    <Border x:Name='brd' Background='#112240' CornerRadius='6' BorderBrush='#1A3A5C' BorderThickness='1'>
         <Border.ToolTip>
-            <ToolTip Background='#1A1200' BorderBrush='#F5C200' BorderThickness='1' Padding='8,4'>
-                <TextBlock Text='$tDesc' Foreground='#FFF4C8' FontSize='11'/>
+            <ToolTip Background='#0D1B2A' BorderBrush='#4A9EFF' BorderThickness='1' Padding='8,4'>
+                <TextBlock Text='$tDesc' Foreground='#E8F4FF' FontSize='11'/>
             </ToolTip>
         </Border.ToolTip>
         <ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/>
     </Border>
     <ControlTemplate.Triggers>
         <Trigger Property='IsMouseOver' Value='True'>
-            <Setter TargetName='brd' Property='Background' Value='#F5C200'/>
-            <Setter TargetName='brd' Property='BorderBrush' Value='#F5C200'/>
-            <Setter Property='Foreground' Value='#0F0B00'/>
+            <Setter TargetName='brd' Property='Background' Value='#1A3A5C'/>
+            <Setter TargetName='brd' Property='BorderBrush' Value='#4A9EFF'/>
+            <Setter Property='Foreground' Value='#4A9EFF'/>
         </Trigger>
         <Trigger Property='IsPressed' Value='True'>
-            <Setter TargetName='brd' Property='Background' Value='#C49A00'/>
-            <Setter TargetName='brd' Property='BorderBrush' Value='#C49A00'/>
-            <Setter Property='Foreground' Value='#0F0B00'/>
+            <Setter TargetName='brd' Property='Background' Value='#4A9EFF'/>
+            <Setter TargetName='brd' Property='BorderBrush' Value='#4A9EFF'/>
+            <Setter Property='Foreground' Value='White'/>
         </Trigger>
     </ControlTemplate.Triggers>
 </ControlTemplate>
@@ -1349,9 +1423,28 @@ $FullSSBtn.Add_Click({
 })
 
 # Settings button event
-$SettingsBtn.Add_Click({
-    Show-SettingsWindow
+$SettingsBtn.Add_Click({ Show-SettingsWindow })
+
+# Label buttons in left panel — same actions as icon buttons
+$FastSSLbl.Add_Click({   Write-Log "Starting Fast SS...";   Invoke-SSMode -Mode "Fast" })
+$NormalSSLbl.Add_Click({ Write-Log "Starting Normal SS..."; Invoke-SSMode -Mode "Normal" })
+$FullSSLbl.Add_Click({   Write-Log "Starting Full SS...";   Invoke-SSMode -Mode "Full" })
+$OpenFolderLbl.Add_Click({
+    if (-not (Test-Path $installDir)) { New-Item -ItemType Directory -Path $installDir -Force | Out-Null }
+    Start-Process explorer.exe $installDir
+    Write-Log "Opened install folder."
 })
+$ClearCacheLbl.Add_Click({
+    if (Test-Path $installDir) {
+        $items = Get-ChildItem -Path $installDir -Force -ErrorAction SilentlyContinue
+        $count = @($items).Count
+        $items | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Log "Cleared $count item(s) from install folder."
+        Set-Status "Clean" "Removed downloaded files and folders." "IDLE"
+    } else { Write-Log "Nothing to clear." }
+})
+$OpenCmdLbl.Add_Click({ Start-Process -FilePath "cmd.exe"; Write-Log "Opened CMD." })
+$SettingsLbl.Add_Click({ Show-SettingsWindow })
 
 Write-Log "Files saved to: $installDir"
 Set-Status "Ready" "Select a tool to launch or download it." "IDLE"
