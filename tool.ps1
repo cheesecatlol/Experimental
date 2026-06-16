@@ -358,8 +358,8 @@ $ToolData = @(
         <Grid Grid.Column="1" Margin="0">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="200"/>
           </Grid.RowDefinitions>
 
           <!-- Status bar -->
@@ -380,7 +380,7 @@ $ToolData = @(
           </Border>
 
           <!-- Tool tabs -->
-          <Border Grid.Row="1" Background="{StaticResource ContentBg}" Padding="0">
+          <Border Grid.Row="1" Background="{StaticResource ContentBg}" Padding="0" MaxHeight="320">
             <TabControl x:Name="ToolsTab" Background="Transparent" BorderThickness="0" Padding="0">
               <TabControl.Resources>
                 <Style TargetType="TabPanel">
