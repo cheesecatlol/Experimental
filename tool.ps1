@@ -266,13 +266,15 @@ $ToolData = @(
       <!-- ── Body ── -->
       <Grid Grid.Row="1">
         <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="56"/>
-          <ColumnDefinition Width="200"/>
+          <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
+        <!-- Sidebar zone: icon rail + full menu grouped together so hovering either one keeps the menu open -->
+        <StackPanel x:Name="SidebarZone" Grid.Column="0" Orientation="Horizontal">
+
         <!-- Icon-only nav rail -->
-        <Border Grid.Column="0" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SepColor}" BorderThickness="0,0,1,0">
+        <Border Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SepColor}" BorderThickness="0,0,1,0">
           <StackPanel VerticalAlignment="Top" Margin="0,12,0,0">
             <Button x:Name="FastSSBtn"   Style="{StaticResource NavBtn}" FontSize="14" Foreground="{StaticResource Accent}">
               <Button.Content>
@@ -313,8 +315,8 @@ $ToolData = @(
           </StackPanel>
         </Border>
 
-        <!-- Left panel: SS mode labels + cat + info -->
-        <Border Grid.Column="1" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SepColor}" BorderThickness="0,0,1,0">
+        <!-- Left panel: SS mode labels + cat + info (full menu - shown on sidebar hover) -->
+        <Border x:Name="FullMenuPanel" Width="200" Visibility="Collapsed" Background="{StaticResource SidebarBg}" BorderBrush="{StaticResource SepColor}" BorderThickness="0,0,1,0">
           <StackPanel Margin="12,14,12,14">
             <!-- Cat -->
             <Border Background="#091220" CornerRadius="6" Margin="0,0,0,14" Padding="0,10">
@@ -350,9 +352,10 @@ $ToolData = @(
             <Button x:Name="SettingsLbl" Style="{StaticResource SSBtn}" Content="&#x2699;  Settings" Margin="0,10,0,0"/>
           </StackPanel>
         </Border>
+        </StackPanel>
 
         <!-- Main content area -->
-        <Grid Grid.Column="2" Margin="0">
+        <Grid Grid.Column="1" Margin="0">
           <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -447,6 +450,8 @@ $OpenFolderLbl = $window.FindName("OpenFolderLbl")
 $ClearCacheLbl = $window.FindName("ClearCacheLbl")
 $OpenCmdLbl    = $window.FindName("OpenCmdLbl")
 $SettingsLbl   = $window.FindName("SettingsLbl")
+$SidebarZone   = $window.FindName("SidebarZone")
+$FullMenuPanel = $window.FindName("FullMenuPanel")
 
 $InstPathBlock.Text = "Install path:`n$installDir"
 
@@ -1371,6 +1376,11 @@ $catTimer.Start()
 # EVENTS
 # ==============================================================================
 $window.Add_MouseLeftButtonDown({ try { $window.DragMove() } catch {} })
+
+# Full menu only opens while hovering over the sidebar (icon rail or expanded panel)
+$SidebarZone.Add_MouseEnter({ $FullMenuPanel.Visibility = "Visible" })
+$SidebarZone.Add_MouseLeave({ $FullMenuPanel.Visibility = "Collapsed" })
+
 $CloseBtn.Add_Click({ $catTimer.Stop(); $window.Close() })
 $MinBtn.Add_Click({ $window.WindowState = "Minimized" })
 $MaxBtn.Add_Click({
