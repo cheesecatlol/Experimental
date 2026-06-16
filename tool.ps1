@@ -380,7 +380,7 @@ $ToolData = @(
           </Border>
 
           <!-- Tool tabs -->
-          <Border Grid.Row="1" Background="{StaticResource ContentBg}" Padding="0" MaxHeight="320">
+          <Border Grid.Row="1" Background="{StaticResource ContentBg}" Padding="0" MaxHeight="320" Margin="0,0,0,12">
             <TabControl x:Name="ToolsTab" Background="Transparent" BorderThickness="0" Padding="0">
               <TabControl.Resources>
                 <Style TargetType="TabPanel">
