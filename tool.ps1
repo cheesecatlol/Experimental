@@ -308,6 +308,11 @@ $ToolData = @(
 
       <!-- ── Body ── -->
       <Grid Grid.Row="1" Background="#03080B" ClipToBounds="True">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto"/>
+          <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
         <!-- Animated chemistry / cyber background. Purely visual and non-interactive. -->
         <Canvas x:Name="ChemicalCanvas" Grid.ColumnSpan="2" IsHitTestVisible="False" Opacity="0.52" ClipToBounds="True"/>
         <Canvas x:Name="FormulaCanvas" Grid.ColumnSpan="2" IsHitTestVisible="False" Opacity="0.22" ClipToBounds="True"/>
@@ -322,10 +327,6 @@ $ToolData = @(
           <Rectangle.Effect><DropShadowEffect Color="#39FF9A" BlurRadius="18" ShadowDepth="0" Opacity="0.9"/></Rectangle.Effect>
         </Rectangle>
         <Border Grid.ColumnSpan="2" IsHitTestVisible="False" Background="#36000808"/>
-        <Grid.ColumnDefinitions>
-          <ColumnDefinition Width="Auto"/>
-          <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
 
         <!-- Sidebar zone: icon rail + full menu grouped together so hovering either one keeps the menu open -->
         <StackPanel x:Name="SidebarZone" Grid.Column="0" Orientation="Horizontal">
