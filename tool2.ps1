@@ -714,12 +714,56 @@ foreach ($cat in $Categories) {
 
         $btn.Template = [Windows.Markup.XamlReader]::Parse("
             <ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Button'>
-                <Border Background='{TemplateBinding Background}' CornerRadius='6' BorderBrush='#33F5C200' BorderThickness='1'>
+                <Border x:Name='Root' CornerRadius='6' BorderThickness='1' BorderBrush='#33F5C200' RenderTransformOrigin='0.5,0.5'>
+                    <Border.Background>
+                        <SolidColorBrush x:Name='BgBrush' Color='#1A1200'/>
+                    </Border.Background>
+                    <Border.RenderTransform>
+                        <ScaleTransform x:Name='Scale' ScaleX='1' ScaleY='1'/>
+                    </Border.RenderTransform>
+                    <Border.Effect>
+                        <DropShadowEffect x:Name='Glow' Color='#F5C200' BlurRadius='0' ShadowDepth='0' Opacity='0'/>
+                    </Border.Effect>
                     <ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/>
                 </Border>
                 <ControlTemplate.Triggers>
                     <Trigger Property='IsMouseOver' Value='True'>
-                        <Setter Property='Background' Value='#F5C200'/>
+                        <Trigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation Storyboard.TargetName='BgBrush' Storyboard.TargetProperty='Color'
+                                                    To='#F5C200' Duration='0:0:0.15'/>
+                                    <DoubleAnimation Storyboard.TargetName='Scale' Storyboard.TargetProperty='ScaleX'
+                                                     To='1.06' Duration='0:0:0.15'/>
+                                    <DoubleAnimation Storyboard.TargetName='Scale' Storyboard.TargetProperty='ScaleY'
+                                                     To='1.06' Duration='0:0:0.15'/>
+                                    <DoubleAnimation Storyboard.TargetName='Glow' Storyboard.TargetProperty='BlurRadius'
+                                                     To='18' Duration='0:0:0.15'/>
+                                    <DoubleAnimation Storyboard.TargetName='Glow' Storyboard.TargetProperty='Opacity'
+                                                     To='0.85' Duration='0:0:0.15'/>
+                                    <ColorAnimation Storyboard.TargetName='Root' Storyboard.TargetProperty='(Border.BorderBrush).(SolidColorBrush.Color)'
+                                                    To='#F5C200' Duration='0:0:0.15'/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.EnterActions>
+                        <Trigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation Storyboard.TargetName='BgBrush' Storyboard.TargetProperty='Color'
+                                                    To='#1A1200' Duration='0:0:0.2'/>
+                                    <DoubleAnimation Storyboard.TargetName='Scale' Storyboard.TargetProperty='ScaleX'
+                                                     To='1' Duration='0:0:0.2'/>
+                                    <DoubleAnimation Storyboard.TargetName='Scale' Storyboard.TargetProperty='ScaleY'
+                                                     To='1' Duration='0:0:0.2'/>
+                                    <DoubleAnimation Storyboard.TargetName='Glow' Storyboard.TargetProperty='BlurRadius'
+                                                     To='0' Duration='0:0:0.2'/>
+                                    <DoubleAnimation Storyboard.TargetName='Glow' Storyboard.TargetProperty='Opacity'
+                                                     To='0' Duration='0:0:0.2'/>
+                                    <ColorAnimation Storyboard.TargetName='Root' Storyboard.TargetProperty='(Border.BorderBrush).(SolidColorBrush.Color)'
+                                                    To='#33F5C200' Duration='0:0:0.2'/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.ExitActions>
                         <Setter Property='Foreground' Value='#0F0B00'/>
                     </Trigger>
                 </ControlTemplate.Triggers>
