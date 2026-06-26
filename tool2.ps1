@@ -712,101 +712,68 @@ foreach ($cat in $Categories) {
             "Link"   { $btn.Background = "#1A1200" }
         }
 
-        # Build the button visual tree in code so animations are reliable
-        $btnBorder = [Windows.Markup.XamlReader]::Parse("
-            <Border xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
-                    CornerRadius='6' BorderThickness='1' RenderTransformOrigin='0.5,0.5'>
-                <Border.BorderBrush><SolidColorBrush Color='#33F5C200'/></Border.BorderBrush>
-                <Border.Background><SolidColorBrush Color='#1A1200'/></Border.Background>
-                <Border.RenderTransform><ScaleTransform ScaleX='1' ScaleY='1'/></Border.RenderTransform>
-                <Border.Effect><DropShadowEffect Color='#F5C200' BlurRadius='0' ShadowDepth='0' Opacity='0'/></Border.Effect>
-            </Border>
-        ")
+        # Simple template - no x:Name needed, we grab children via VisualTreeHelper after render
+        $btn.Template = [Windows.Markup.XamlReader]::Parse(
+            "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Button'>" +
+            "  <Border CornerRadius='6' BorderThickness='1' RenderTransformOrigin='0.5,0.5'>" +
+            "    <Border.BorderBrush><SolidColorBrush Color='#33F5C200'/></Border.BorderBrush>" +
+            "    <Border.Background><SolidColorBrush Color='#1A1200'/></Border.Background>" +
+            "    <Border.RenderTransform><ScaleTransform ScaleX='1' ScaleY='1'/></Border.RenderTransform>" +
+            "    <Border.Effect><DropShadowEffect Color='#F5C200' BlurRadius='0' ShadowDepth='0' Opacity='0'/></Border.Effect>" +
+            "    <ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/>" +
+            "  </Border>" +
+            "</ControlTemplate>"
+        )
 
-        $btn.Template = [Windows.Markup.XamlReader]::Parse("
-            <ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' TargetType='Button'>
-                <Border CornerRadius='6' BorderThickness='1' RenderTransformOrigin='0.5,0.5'
-                        Background='{TemplateBinding Background}'
-                        BorderBrush='{TemplateBinding BorderBrush}'>
-                    <Border.RenderTransform><ScaleTransform x:Name='ScaleT' ScaleX='1' ScaleY='1'/></Border.RenderTransform>
-                    <Border.Effect><DropShadowEffect x:Name='GlowFx' Color='#F5C200' BlurRadius='0' ShadowDepth='0' Opacity='0'/></Border.Effect>
-                    <ContentPresenter HorizontalAlignment='Center' VerticalAlignment='Center'/>
-                </Border>
-            </ControlTemplate>
-        ")
-
-        $btn.Background  = [Windows.Media.SolidColorBrush]::new([Windows.Media.Color]::FromRgb(0x1A,0x12,0x00))
-        $btn.BorderBrush = [Windows.Media.SolidColorBrush]::new([Windows.Media.Color]::FromArgb(0x33,0xF5,0xC2,0x00))
-
-        # Helper: create and begin a Storyboard on a button
+        # Use BeginAnimation directly on objects - avoids all Storyboard/PropertyPath issues
         $animBtn = {
-            param($b, $toScaleX, $toScaleY, $toBgR, $toBgG, $toBgB, $toGlow, $toGlowOp, $dur)
+            param($b, $toScaleX, $toScaleY, $toBgR, $toBgG, $toBgB, $toGlow, $toGlowOp, $ms)
             $b.Dispatcher.Invoke([Action]{
                 $border = [Windows.Media.VisualTreeHelper]::GetChild($b, 0)
                 if (-not $border) { return }
+                $scale   = $border.RenderTransform
+                $glow    = $border.Effect
+                $bgBrush = $border.Background
+                $d = [Windows.Duration]::new([TimeSpan]::FromMilliseconds($ms))
+                $ease = [Windows.Media.Animation.CubicEase]::new()
 
-                $scale  = $border.RenderTransform
-                $glow   = $border.Effect
-                $bgBrush    = $border.Background
-                $ms = [int]($dur * 1000)
-                $d  = [Windows.Duration]::new([TimeSpan]::FromMilliseconds($ms))
+                $aScX = [Windows.Media.Animation.DoubleAnimation]::new([double]$toScaleX, $d)
+                $aScX.EasingFunction = $ease
+                $scale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $aScX)
 
-                $sb = [Windows.Media.Animation.Storyboard]::new()
+                $aScY = [Windows.Media.Animation.DoubleAnimation]::new([double]$toScaleY, $d)
+                $aScY.EasingFunction = $ease
+                $scale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $aScY)
 
-                # Scale X
-                $aScX = [Windows.Media.Animation.DoubleAnimation]::new($toScaleX, $d)
-                $aScX.EasingFunction = [Windows.Media.Animation.CubicEase]::new()
-                [Windows.Media.Animation.Storyboard]::SetTarget($aScX, $scale)
-                [Windows.Media.Animation.Storyboard]::SetTargetProperty($aScX, [Windows.PropertyPath]::new("ScaleX"))
-                $sb.Children.Add($aScX)
-
-                # Scale Y
-                $aScY = [Windows.Media.Animation.DoubleAnimation]::new($toScaleY, $d)
-                $aScY.EasingFunction = [Windows.Media.Animation.CubicEase]::new()
-                [Windows.Media.Animation.Storyboard]::SetTarget($aScY, $scale)
-                [Windows.Media.Animation.Storyboard]::SetTargetProperty($aScY, [Windows.PropertyPath]::new("ScaleY"))
-                $sb.Children.Add($aScY)
-
-                # Background colour
-                $toColor = [Windows.Media.Color]::FromRgb($toBgR, $toBgG, $toBgB)
+                $toColor = [Windows.Media.Color]::FromRgb([byte]$toBgR, [byte]$toBgG, [byte]$toBgB)
                 $aCol = [Windows.Media.Animation.ColorAnimation]::new($toColor, $d)
-                [Windows.Media.Animation.Storyboard]::SetTarget($aCol, $bgBrush)
-                [Windows.Media.Animation.Storyboard]::SetTargetProperty($aCol, [Windows.PropertyPath]::new("Color"))
-                $sb.Children.Add($aCol)
+                $bgBrush.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $aCol)
 
-                # Glow blur
-                $aGlow = [Windows.Media.Animation.DoubleAnimation]::new($toGlow, $d)
-                [Windows.Media.Animation.Storyboard]::SetTarget($aGlow, $glow)
-                [Windows.Media.Animation.Storyboard]::SetTargetProperty($aGlow, [Windows.PropertyPath]::new("BlurRadius"))
-                $sb.Children.Add($aGlow)
+                $aBlur = [Windows.Media.Animation.DoubleAnimation]::new([double]$toGlow, $d)
+                $glow.BeginAnimation([Windows.Media.Effects.DropShadowEffect]::BlurRadiusProperty, $aBlur)
 
-                # Glow opacity
-                $aGlowOp = [Windows.Media.Animation.DoubleAnimation]::new($toGlowOp, $d)
-                [Windows.Media.Animation.Storyboard]::SetTarget($aGlowOp, $glow)
-                [Windows.Media.Animation.Storyboard]::SetTargetProperty($aGlowOp, [Windows.PropertyPath]::new("Opacity"))
-                $sb.Children.Add($aGlowOp)
-
-                $sb.Begin()
+                $aOp = [Windows.Media.Animation.DoubleAnimation]::new([double]$toGlowOp, $d)
+                $glow.BeginAnimation([Windows.Media.Effects.DropShadowEffect]::OpacityProperty, $aOp)
             })
         }
 
         $btn.Add_MouseEnter({
             $b = $_.Source
-            & $animBtn $b 1.06 1.06 0xF5 0xC2 0x00 20 0.9 0.13
-            $b.Foreground = "#0F0B00"
+            & $animBtn $b 1.06 1.06 0xF5 0xC2 0x00 20 0.9 130
+            $b.Foreground = [Windows.Media.Brushes]::Black
         })
         $btn.Add_MouseLeave({
             $b = $_.Source
-            & $animBtn $b 1.0 1.0 0x1A 0x12 0x00 0 0.0 0.18
-            $b.Foreground = "#F3E5F5"
+            & $animBtn $b 1.0 1.0 0x1A 0x12 0x00 0 0.0 180
+            $b.Foreground = [Windows.Media.BrushConverter]::new().ConvertFrom("#F3E5F5")
         })
         $btn.Add_PreviewMouseDown({
             $b = $_.Source
-            & $animBtn $b 0.96 0.96 0xD4 0xA8 0x00 8 0.6 0.08
+            & $animBtn $b 0.95 0.95 0xD4 0xA8 0x00 8 0.6 80
         })
         $btn.Add_PreviewMouseUp({
             $b = $_.Source
-            & $animBtn $b 1.06 1.06 0xF5 0xC2 0x00 20 0.9 0.1
+            & $animBtn $b 1.06 1.06 0xF5 0xC2 0x00 20 0.9 100
         })
 
         $btn.Add_Click({
